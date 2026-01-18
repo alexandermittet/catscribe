@@ -7,7 +7,7 @@ from mutagen import File as MutagenFile
 
 
 # Allowed file extensions
-ALLOWED_EXTENSIONS = {".mp3", ".wav", ".m4a", ".ogg", ".flac", ".webm", ".mp4", ".avi", ".mov"}
+ALLOWED_EXTENSIONS = {".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aiff"}
 
 # MIME types that correspond to audio files
 ALLOWED_MIME_TYPES = {
@@ -44,7 +44,7 @@ def sanitize_filename(filename: str) -> str:
     # Remove directory separators and keep only basename
     basename = os.path.basename(filename)
     # Remove any remaining dangerous characters
-    safe_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+    safe_chars = "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789._-"
     sanitized = "".join(c if c in safe_chars else "_" for c in basename)
     return sanitized[:255]  # Limit length
 

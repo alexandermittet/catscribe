@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Header, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.requests import Request
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -76,9 +77,7 @@ async def health_check():
 
 
 @app.post("/transcribe", response_model=TranscriptionResponse)
-@limiter.limit("10/hour")
 async def transcribe(
-    request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     language: str = Form("auto"),
@@ -87,6 +86,10 @@ async def transcribe(
     x_api_key: Optional[str] = Header(None)
 ):
     """Transcribe audio file"""
+    # Rate limiting - check manually (skip for now in dev, will add back later)
+    # rate_limit_key = get_remote_address(request) if request else "unknown"
+    # if not redis_client.set_rate_limit(rate_limit_key, 10, 3600):
+    #     raise HTTPException(status_code=429, detail="Rate limit exceeded: 10 requests per hour")
     # Verify API key
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")

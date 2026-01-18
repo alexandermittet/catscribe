@@ -56,23 +56,41 @@ export async function transcribeAudio(
   formData.append('model', model);
   formData.append('fingerprint', fingerprint);
 
-  const response = await api.post<TranscriptionResponse>('/transcribe', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+  // Use Next.js API route which proxies to backend with API key
+  const response = await fetch('/api/transcribe', {
+    method: 'POST',
+    body: formData,
   });
 
-  return response.data;
+  if (!response.ok) {
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
+    }
+    
+    // Handle different error formats
+    const errorMessage = errorData.detail || 
+                        (Array.isArray(errorData.detail) ? errorData.detail[0]?.msg || JSON.stringify(errorData.detail) : null) ||
+                        errorData.message || 
+                        JSON.stringify(errorData);
+    
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
 }
 
 export async function getTranscription(
   jobId: string,
   fingerprint: string
 ): Promise<TranscriptionResult> {
-  const response = await api.get<TranscriptionResult>(`/transcription/${jobId}`, {
-    params: { fingerprint },
-  });
-  return response.data;
+  const response = await fetch(`/api/transcription/${jobId}?fingerprint=${encodeURIComponent(fingerprint)}`);
+  if (!response.ok) {
+    throw new Error('Failed to get transcription');
+  }
+  return response.json();
 }
 
 export async function getCredits(fingerprint: string): Promise<CreditBalance> {

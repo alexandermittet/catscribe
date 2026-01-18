@@ -8,7 +8,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
+# Install CPU-only PyTorch first (much smaller, ~800MB vs 2.5GB)
+# This prevents openai-whisper from pulling in CUDA dependencies
+RUN pip install --no-cache-dir torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
+
+# Copy requirements and install remaining Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

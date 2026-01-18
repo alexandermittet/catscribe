@@ -115,7 +115,9 @@ export default function Home() {
       setJobId(response.job_id);
     } catch (err: any) {
       setIsTranscribing(false);
-      setError(err.response?.data?.detail || 'Failed to start transcription');
+      const errorMessage = err.message || err.response?.data?.detail || err.response?.data?.message || 'Failed to start transcription';
+      setError(errorMessage);
+      console.error('Transcription error:', err);
     }
   };
 

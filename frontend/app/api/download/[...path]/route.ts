@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
-const API_KEY = process.env.API_KEY || '';
+const API_KEY = process.env.API_KEY || 'dev-key-change-in-production';
 
 export async function GET(
   request: NextRequest,
