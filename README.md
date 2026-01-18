@@ -14,48 +14,42 @@ A web application for transcribing audio files using OpenAI Whisper, with a free
 
 ```mermaid
 graph TB
-    subgraph Client["Client Browser"]
+    subgraph Client[Client Browser]
         User[User]
-        UI[Next.js Frontend<br/>Vercel]
+        UI["Next.js Frontend<br/>Vercel"]
     end
     
-    subgraph FrontendServices["Frontend Services"]
-        APIProxy[Next.js API Routes<br/>/api/transcribe<br/>/api/checkout<br/>/api/webhook]
-        Fingerprint[FingerprintJS<br/>Device Tracking]
+    subgraph FrontendServices[Frontend Services]
+        APIProxy["Next.js API Routes<br/>/api/transcribe<br/>/api/checkout<br/>/api/webhook"]
+        Fingerprint["FingerprintJS<br/>Device Tracking"]
     end
     
-    subgraph BackendServices["Backend Services - Fly.dev"]
-        FastAPI[FastAPI Backend<br/>Stockholm ARN]
-        Whisper[OpenAI Whisper<br/>Model Cache]
-        Storage[Persistent Volume<br/>Models & Transcripts]
+    subgraph BackendServices[Backend Services - Fly.dev]
+        FastAPI["FastAPI Backend<br/>Stockholm ARN"]
+        Whisper["OpenAI Whisper<br/>Model Cache"]
+        Storage["Persistent Volume<br/>Models & Transcripts"]
     end
     
-    subgraph ExternalServices["External Services"]
-        Stripe[Stripe Checkout<br/>Payment Processing]
-        Redis[Upstash Redis<br/>Usage & Credits]
+    subgraph ExternalServices[External Services]
+        Stripe["Stripe Checkout<br/>Payment Processing"]
+        Redis["Upstash Redis<br/>Usage & Credits"]
     end
     
-    User -->|Upload Audio| UI
-    UI -->|API Calls| APIProxy
-    UI -->|Device ID| Fingerprint
+    User -->|"Upload Audio"| UI
+    UI -->|"API Calls"| APIProxy
+    UI -->|"Device ID"| Fingerprint
     
-    APIProxy -->|Proxy Requests| FastAPI
-    APIProxy -->|Create Session| Stripe
-    Stripe -->|Webhook| APIProxy
+    APIProxy -->|"Proxy Requests"| FastAPI
+    APIProxy -->|"Create Session"| Stripe
+    Stripe -->|"Webhook"| APIProxy
     
-    FastAPI -->|Load Models| Whisper
-    Whisper -->|Cache Models| Storage
-    FastAPI -->|Store Outputs| Storage
-    FastAPI -->|Check Usage| Redis
-    FastAPI -->|Update Credits| Redis
+    FastAPI -->|"Load Models"| Whisper
+    Whisper -->|"Cache Models"| Storage
+    FastAPI -->|"Store Outputs"| Storage
+    FastAPI -->|"Check Usage"| Redis
+    FastAPI -->|"Update Credits"| Redis
     
-    APIProxy -->|Add Credits| Redis
-    
-    style UI fill:#0070f3
-    style FastAPI fill:#00d4aa
-    style Stripe fill:#635bff
-    style Redis fill:#e11d48
-    style Storage fill:#8b5cf6
+    APIProxy -->|"Add Credits"| Redis
 ```
 
 ### Data Flow
@@ -76,7 +70,7 @@ graph TB
 - Transcription outputs stored for 7 days (.txt, .srt, .vtt)
 - Device fingerprinting for usage tracking
 - Stripe Checkout integration for credit purchases
-- Admin pricing: Special $1 pricing for admin@admitted.dk
+- Admin pricing: Special $1 pricing for <admin@admitted.dk>
 
 ## Local Development
 
@@ -136,8 +130,8 @@ See `frontend/.env.local.example` for a template.
 
 ### Current Deployment Status
 
-- **Frontend**: ✅ Deployed at https://frontend-taupe-six-42.vercel.app
-- **Backend**: ✅ Deployed at https://transkriber-app-backend.fly.dev
+- **Frontend**: ✅ Deployed at <https://frontend-taupe-six-42.vercel.app>
+- **Backend**: ✅ Deployed at <https://transkriber-app-backend.fly.dev>
 - **Region**: Stockholm (ARN)
 - **Redis**: Upstash Redis (solitary-wind-5060)
 
@@ -151,11 +145,13 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 4. Create volume: `fly volumes create transkriber_data --size 10 --region arn`
 5. Create Redis: `fly redis create transkriber-redis --region arn`
 6. Set secrets:
+
    ```bash
    fly secrets set REDIS_URL=...
    fly secrets set API_KEY=...
    fly secrets set ALLOWED_ORIGINS=...
    ```
+
 7. Deploy: `fly deploy`
 
 ### Frontend (Vercel)
@@ -164,6 +160,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 2. Login: `vercel login`
 3. Deploy: `vercel --prod`
 4. Set environment variables:
+
    ```bash
    vercel env add BACKEND_URL production
    vercel env add API_KEY production
@@ -171,6 +168,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
    vercel env add STRIPE_WEBHOOK_SECRET production
    # ... etc
    ```
+
 5. Redeploy: `vercel --prod`
 
 ## Security
@@ -194,6 +192,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 | Large | 8 credits       |
 
 Packages:
+
 - 50 credits - $5
 - 120 credits - $10
 - 300 credits - $20
