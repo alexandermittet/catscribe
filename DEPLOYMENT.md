@@ -17,6 +17,24 @@
 - **URL**: https://frontend-taupe-six-42.vercel.app
 - **Status**: Production deployment active
 
+### ⚠️ CRITICAL: Root Directory Configuration
+
+**This is a monorepo with `backend/` and `frontend/` directories. Vercel MUST be configured to use `frontend/` as the Root Directory.**
+
+**How to set Root Directory (REQUIRED for Git-based deployments):**
+
+1. Go to your Vercel project: https://vercel.com/dashboard
+2. Click on your project
+3. Go to **Settings** → **General**
+4. Scroll to **Root Directory**
+5. Click **Edit**
+6. Set it to: `frontend`
+7. Click **Save**
+
+**This setting CANNOT be configured via code** - it must be set in the Vercel dashboard. Without this, Vercel will try to build from the repository root and fail with "Couldn't find any `pages` or `app` directory".
+
+**Note:** This setting applies to all branches/environments. Once set, all deployments will use `frontend/` as the root.
+
 ### Environment Variables Set:
 - `BACKEND_URL` = `https://transkriber-app-backend.fly.dev`
 - `API_KEY` = `c025fe9e77d7ec0cab6906ea37f0bf629ed2ae569f8c03e46c3e228d13990ee2`
@@ -50,6 +68,14 @@
 - Check secrets: `fly secrets list -a transkriber-app-backend`
 
 ### Frontend Issues
+
+**Build Error: "Couldn't find any `pages` or `app` directory"**
+- **Root cause**: Root Directory is not set to `frontend` in Vercel project settings
+- **Fix**: Go to Settings → General → Root Directory → Set to `frontend` → Save
+- This is the #1 cause of build failures in monorepo setups
+
+**Other Frontend Issues:**
 - Check Vercel deployment logs in dashboard
 - Verify environment variables are set correctly
 - Check browser console for API errors
+- Verify Root Directory is set correctly (see above)
