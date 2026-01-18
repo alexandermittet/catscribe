@@ -60,8 +60,8 @@ export default function Home() {
 
   // Default fallback values
   const defaultUsageLimits: UsageLimit = {
-    remaining_tiny_base: 3,
-    remaining_small: 1,
+    remaining_tiny_base: 45,
+    remaining_small: 5,
     is_paid: false
   };
 
@@ -161,11 +161,11 @@ export default function Home() {
     const limits = usageLimits || defaultUsageLimits;
     if (limits.is_paid) return true;
     
-    if (modelValue === 'small') {
-      return limits.remaining_small > 0 && limits.remaining_tiny_base === 0;
-    }
     if (modelValue === 'tiny' || modelValue === 'base') {
       return limits.remaining_tiny_base > 0;
+    }
+    if (modelValue === 'small' || modelValue === 'medium' || modelValue === 'large') {
+      return limits.remaining_small > 0;
     }
     return false;
   };
@@ -211,8 +211,8 @@ export default function Home() {
               </div>
               {usageLimits && (
                 <div className="text-sm text-gray-600">
-                  <span>Tiny/Base remaining: {usageLimits.remaining_tiny_base}</span>
-                  <span className="ml-4">Small remaining: {usageLimits.remaining_small}</span>
+                  <span>Free minutes remaining: {usageLimits.remaining_tiny_base}</span>
+                  <span className="ml-4">Premium minutes remaining: {usageLimits.remaining_small}</span>
                 </div>
               )}
             </div>

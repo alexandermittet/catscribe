@@ -38,8 +38,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error: any) {
+    console.error('[ERROR] Claim credits API failed:', error);
     return NextResponse.json(
-      { detail: error.message || 'Internal server error' },
+      { 
+        detail: `Internal server error: ${error.message}`,
+        backend_url: BACKEND_URL,
+        error_type: error.constructor.name
+      },
       { status: 500 }
     );
   }

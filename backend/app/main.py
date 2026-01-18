@@ -115,25 +115,23 @@ async def transcribe(
     
     # Check free tier limits
     if not is_paid:
-        tiny_base_count = usage.get("tiny_base_count", 0)
-        small_count = usage.get("small_count", 0)
+        tiny_base_minutes_used = usage.get("tiny_base_minutes_used", 0.0)
+        premium_minutes_used = usage.get("premium_minutes_used", 0.0)
+        duration_minutes = duration / 60.0
         
         if model_size in [ModelSize.TINY, ModelSize.BASE]:
-            if tiny_base_count >= 3:
+            remaining_free_minutes = 45.0 - tiny_base_minutes_used
+            if duration_minutes > remaining_free_minutes:
                 raise HTTPException(
                     status_code=403,
-                    detail="Free tier limit reached: 3 transcriptions with tiny/base models"
+                    detail=f"Insufficient free minutes. Required: {duration_minutes:.1f}, Available: {remaining_free_minutes:.1f}"
                 )
-        elif model_size == ModelSize.SMALL:
-            if small_count >= 1:
+        elif model_size in [ModelSize.SMALL, ModelSize.MEDIUM, ModelSize.LARGE]:
+            remaining_premium_minutes = 5.0 - premium_minutes_used
+            if duration_minutes > remaining_premium_minutes:
                 raise HTTPException(
                     status_code=403,
-                    detail="Free tier limit reached: 1 transcription with small model"
-                )
-            if tiny_base_count < 3:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Free tier: Must use 3 tiny/base transcriptions before using small model"
+                    detail=f"Insufficient premium minutes. Required: {duration_minutes:.1f}, Available: {remaining_premium_minutes:.1f}"
                 )
     
     # Check credit balance for paid users
@@ -170,7 +168,7 @@ async def transcribe(
             )
             
             # Update usage
-            redis_client.increment_usage(fingerprint, model_size.value, is_paid)
+            redis_client.increment_usage(fingerprint, model_size.value, is_paid, duration_seconds=duration)
             
             # Deduct credits if paid
             if is_paid:
@@ -384,12 +382,12 @@ async def get_usage_limits(
             is_paid=True
         )
     
-    tiny_base_count = usage.get("tiny_base_count", 0)
-    small_count = usage.get("small_count", 0)
+    tiny_base_minutes_used = usage.get("tiny_base_minutes_used", 0.0)
+    premium_minutes_used = usage.get("premium_minutes_used", 0.0)
     
     return UsageLimit(
-        remaining_tiny_base=max(0, 3 - tiny_base_count),
-        remaining_small=max(0, 1 - small_count),
+        remaining_tiny_base=int(max(0, 45 - tiny_base_minutes_used)),
+        remaining_small=int(max(0, 5 - premium_minutes_used)),
         is_paid=False
     )
 

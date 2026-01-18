@@ -7,6 +7,9 @@ export async function GET(request: NextRequest) {
   try {
     const fingerprint = request.nextUrl.searchParams.get('fingerprint');
     
+    console.log('[DEBUG] BACKEND_URL:', BACKEND_URL);
+    console.log('[DEBUG] fingerprint:', fingerprint);
+    
     if (!fingerprint) {
       return NextResponse.json(
         { detail: 'Fingerprint required' },
@@ -14,16 +17,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${BACKEND_URL}/credits?fingerprint=${fingerprint}`, {
+    const url = `${BACKEND_URL}/credits?fingerprint=${fingerprint}`;
+    console.log('[DEBUG] Calling:', url);
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'X-API-Key': API_KEY,
       },
     });
 
+    console.log('[DEBUG] Response status:', response.status);
+
     const data = await response.json();
 
     if (!response.ok) {
+      console.log('[DEBUG] Error response data:', data);
       return NextResponse.json(
         { detail: data.detail || 'Failed to get credits' },
         { status: response.status }
@@ -32,8 +41,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error: any) {
+    console.error('[ERROR] Credits API failed:', error);
     return NextResponse.json(
-      { detail: error.message || 'Internal server error' },
+      { 
+        detail: `Internal server error: ${error.message}`,
+        backend_url: BACKEND_URL,
+        error_type: error.constructor.name
+      },
       { status: 500 }
     );
   }

@@ -27,18 +27,24 @@ class RedisClient:
         """Get usage data for a fingerprint"""
         if not self.client:
             return {
-                "tiny_base_count": 0,
-                "small_count": 0,
+                "tiny_base_minutes_used": 0.0,
+                "premium_minutes_used": 0.0,
                 "is_paid": False,
                 "email": None,
                 "credits": 0.0
             }
         data = self.client.get(f"usage:{fingerprint}")
         if data:
-            return json.loads(data)
+            usage = json.loads(data)
+            # Ensure minute fields exist (for backward compatibility with old count-based data)
+            if "tiny_base_minutes_used" not in usage:
+                usage["tiny_base_minutes_used"] = 0.0
+            if "premium_minutes_used" not in usage:
+                usage["premium_minutes_used"] = 0.0
+            return usage
         return {
-            "tiny_base_count": 0,
-            "small_count": 0,
+            "tiny_base_minutes_used": 0.0,
+            "premium_minutes_used": 0.0,
             "is_paid": False,
             "email": None,
             "credits": 0.0
@@ -90,21 +96,21 @@ class RedisClient:
             if existing_fp == fingerprint:
                 return current_usage
             
-            # Merge credits and usage counts
+            # Merge credits and usage minutes
             merged_credits = existing_usage.get("credits", 0.0) + current_usage.get("credits", 0.0)
-            merged_tiny_base = max(
-                existing_usage.get("tiny_base_count", 0),
-                current_usage.get("tiny_base_count", 0)
+            merged_tiny_base_minutes = max(
+                existing_usage.get("tiny_base_minutes_used", 0.0),
+                current_usage.get("tiny_base_minutes_used", 0.0)
             )
-            merged_small = max(
-                existing_usage.get("small_count", 0),
-                current_usage.get("small_count", 0)
+            merged_premium_minutes = max(
+                existing_usage.get("premium_minutes_used", 0.0),
+                current_usage.get("premium_minutes_used", 0.0)
             )
             
             # Update the existing fingerprint with merged data
             existing_usage["credits"] = merged_credits
-            existing_usage["tiny_base_count"] = merged_tiny_base
-            existing_usage["small_count"] = merged_small
+            existing_usage["tiny_base_minutes_used"] = merged_tiny_base_minutes
+            existing_usage["premium_minutes_used"] = merged_premium_minutes
             existing_usage["email"] = email_lower
             existing_usage["is_paid"] = True
             
@@ -117,8 +123,8 @@ class RedisClient:
             # Update current fingerprint to point to email account
             current_usage["email"] = email_lower
             current_usage["credits"] = merged_credits
-            current_usage["tiny_base_count"] = merged_tiny_base
-            current_usage["small_count"] = merged_small
+            current_usage["tiny_base_minutes_used"] = merged_tiny_base_minutes
+            current_usage["premium_minutes_used"] = merged_premium_minutes
             current_usage["is_paid"] = True
             
             self.client.setex(
@@ -155,16 +161,18 @@ class RedisClient:
             
             return current_usage
     
-    def increment_usage(self, fingerprint: str, model: str, is_paid: bool = False):
-        """Increment usage counter for a fingerprint"""
+    def increment_usage(self, fingerprint: str, model: str, is_paid: bool = False, duration_seconds: float = 0.0):
+        """Increment usage minutes for a fingerprint"""
         if not self.client:
             return
         usage = self.get_usage(fingerprint)
         
+        duration_minutes = duration_seconds / 60.0
+        
         if model in ["tiny", "base"]:
-            usage["tiny_base_count"] = usage.get("tiny_base_count", 0) + 1
-        elif model == "small":
-            usage["small_count"] = usage.get("small_count", 0) + 1
+            usage["tiny_base_minutes_used"] = usage.get("tiny_base_minutes_used", 0.0) + duration_minutes
+        elif model in ["small", "medium", "large"]:
+            usage["premium_minutes_used"] = usage.get("premium_minutes_used", 0.0) + duration_minutes
         
         usage["is_paid"] = is_paid or usage.get("is_paid", False)
         
