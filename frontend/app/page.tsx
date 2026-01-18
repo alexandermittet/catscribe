@@ -202,22 +202,12 @@ export default function Home() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-gray-700">Free Tier</span>
-                <div className="flex gap-3">
-                  {(!credits || credits.credits === 0) && !credits?.email && (
-                    <button
-                      onClick={() => setShowClaimModal(true)}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      Claim Credits
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowCheckout(true)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Upgrade to Paid
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowCheckout(true)}
+                  className="text-blue-600 hover:underline"
+                >
+                  Buy premium minutes
+                </button>
               </div>
               {usageLimits && (
                 <div className="text-sm text-gray-600">
@@ -233,7 +223,7 @@ export default function Home() {
                 onClick={() => setShowClaimModal(true)}
                 className="text-sm text-blue-600 hover:underline"
               >
-                Have credits? Claim them with your email
+                Already bought credits and not showing? click here
               </button>
             </div>
           )}
