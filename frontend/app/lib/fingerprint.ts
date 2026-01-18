@@ -1,6 +1,7 @@
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import type { Agent } from '@fingerprintjs/fingerprintjs';
 
-let fpPromise: Promise<FingerprintJS.Agent> | null = null;
+let fpPromise: Promise<Agent> | null = null;
 
 export async function getFingerprint(): Promise<string> {
   if (!fpPromise) {

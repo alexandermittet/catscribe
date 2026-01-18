@@ -8,12 +8,15 @@ class RedisClient:
     def __init__(self):
         redis_url = os.getenv("REDIS_URL")
         if not redis_url:
-            raise ValueError("REDIS_URL environment variable not set")
+            print("Warning: REDIS_URL not set. Running in fallback mode (no persistence)")
+            self.client = None
+            return
         
         try:
             self.client = redis.from_url(redis_url, decode_responses=True)
             # Test connection
             self.client.ping()
+            print("Redis connected successfully")
         except Exception as e:
             print(f"Warning: Redis connection failed: {e}")
             print("Running in fallback mode (no persistence)")

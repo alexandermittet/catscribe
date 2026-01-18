@@ -19,7 +19,8 @@ A web application for transcribing audio files using OpenAI Whisper, with a free
 - Paid tier: Pay-per-use credits, max 3 hours per file
 - Transcription outputs stored for 7 days (.txt, .srt, .vtt)
 - Device fingerprinting for usage tracking
-- Stripe integration for credit purchases
+- Stripe Checkout integration for credit purchases
+- Admin pricing: Special $1 pricing for admin@admitted.dk
 
 ## Local Development
 
@@ -64,36 +65,57 @@ ALLOWED_ORIGINS=https://your-app.vercel.app
 #### Frontend (.env.local)
 
 ```
-NEXT_PUBLIC_API_URL=https://your-backend.fly.dev
-NEXT_PUBLIC_API_KEY=your-secret-api-key
-NEXT_PUBLIC_FRONTEND_URL=https://your-app.vercel.app
-BACKEND_URL=https://your-backend.fly.dev
+BACKEND_URL=https://transkriber-app-backend.fly.dev
 API_KEY=your-secret-api-key
-STRIPE_SECRET_KEY=sk_...
+FRONTEND_URL=https://frontend-taupe-six-42.vercel.app
+NEXT_PUBLIC_FRONTEND_URL=https://frontend-taupe-six-42.vercel.app
+NEXT_PUBLIC_API_URL=https://transkriber-app-backend.fly.dev
+STRIPE_SECRET_KEY=sk_test_... (or sk_live_...)
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
+See `frontend/.env.local.example` for a template.
+
 ## Deployment
+
+### Current Deployment Status
+
+- **Frontend**: ✅ Deployed at https://frontend-taupe-six-42.vercel.app
+- **Backend**: ✅ Deployed at https://transkriber-app-backend.fly.dev
+- **Region**: Stockholm (ARN)
+- **Redis**: Upstash Redis (solitary-wind-5060)
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ### Backend (Fly.dev)
 
 1. Install Fly CLI: `curl -L https://fly.io/install.sh | sh`
 2. Login: `fly auth login`
 3. Create app: `fly apps create transkriber-app-backend`
-4. Create volume: `fly volumes create transkriber_data --size 10`
-5. Set secrets:
+4. Create volume: `fly volumes create transkriber_data --size 10 --region arn`
+5. Create Redis: `fly redis create transkriber-redis --region arn`
+6. Set secrets:
    ```bash
    fly secrets set REDIS_URL=...
    fly secrets set API_KEY=...
    fly secrets set ALLOWED_ORIGINS=...
    ```
-6. Deploy: `fly deploy`
+7. Deploy: `fly deploy`
 
 ### Frontend (Vercel)
 
-1. Connect GitHub repository
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push
+1. Install Vercel CLI: `npm i -g vercel`
+2. Login: `vercel login`
+3. Deploy: `vercel --prod`
+4. Set environment variables:
+   ```bash
+   vercel env add BACKEND_URL production
+   vercel env add API_KEY production
+   vercel env add STRIPE_SECRET_KEY production
+   vercel env add STRIPE_WEBHOOK_SECRET production
+   # ... etc
+   ```
+5. Redeploy: `vercel --prod`
 
 ## Security
 
@@ -119,6 +141,8 @@ Packages:
 - 50 credits - $5
 - 120 credits - $10
 - 300 credits - $20
+
+**Admin Pricing**: Email `admin@admitted.dk` receives $1 pricing for any package.
 
 ## License
 

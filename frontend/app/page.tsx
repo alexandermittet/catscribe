@@ -152,7 +152,7 @@ export default function Home() {
     <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Transkriber</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">admitted</h1>
           <p className="text-lg text-gray-600">Transcribe audio files using OpenAI Whisper</p>
         </div>
 
@@ -296,6 +296,13 @@ export default function Home() {
             }}
           />
         )}
+        
+        {/* Footer with business name */}
+        <footer className="mt-12 pt-8 border-t border-gray-200 text-center">
+          <p className="text-sm text-gray-600">
+            © {new Date().getFullYear()} <span className="font-semibold">admitted</span>. All rights reserved.
+          </p>
+        </footer>
       </div>
     </main>
   );

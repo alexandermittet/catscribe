@@ -6,7 +6,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 });
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
-const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
 
 // Credit packages
 const CREDIT_PACKAGES = [
@@ -35,6 +34,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Special pricing for admin email
+    const isAdminEmail = email.toLowerCase() === 'admin@admitted.dk';
+    const finalPrice = isAdminEmail ? 100 : package_.price; // $1.00 for admin, regular price otherwise
+    const productName = isAdminEmail ? `${package_.name} (Admin Price)` : package_.name;
+
+    // Use hardcoded production URL - most reliable approach
+    const frontendUrl = 'https://frontend-taupe-six-42.vercel.app';
+    
+    const successUrl = `${frontendUrl}?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${frontendUrl}?canceled=true`;
+
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -43,17 +53,17 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: package_.name,
+              name: productName,
               description: `${package_.credits} transcription credits`,
             },
-            unit_amount: package_.price,
+            unit_amount: finalPrice,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${FRONTEND_URL}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}?canceled=true`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         fingerprint,
         email,
