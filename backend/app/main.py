@@ -333,6 +333,38 @@ async def add_credits(
     return {"success": True, "credits": new_credits}
 
 
+@app.post("/credits/claim", response_model=CreditBalance)
+async def claim_credits(
+    fingerprint: str = Form(...),
+    email: str = Form(...),
+    x_api_key: Optional[str] = Header(None)
+):
+    """Claim credits by email address"""
+    if not verify_api_key(x_api_key):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    
+    # Validate email format
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Invalid email address")
+    
+    # Find existing usage by email
+    existing = redis_client.find_usage_by_email(email.lower())
+    
+    if not existing:
+        raise HTTPException(
+            status_code=404,
+            detail="No credits found for this email address"
+        )
+    
+    # Link fingerprint to email and merge credits
+    usage = redis_client.link_fingerprint_to_email(fingerprint, email.lower())
+    
+    return CreditBalance(
+        credits=usage.get("credits", 0.0),
+        email=usage.get("email")
+    )
+
+
 @app.get("/usage", response_model=UsageLimit)
 async def get_usage_limits(
     fingerprint: str = Query(...),

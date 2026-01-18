@@ -5,6 +5,7 @@ import FileUpload from './components/FileUpload';
 import TranscriptionStatus from './components/TranscriptionStatus';
 import ResultDisplay from './components/ResultDisplay';
 import CheckoutModal from './components/CheckoutModal';
+import ClaimCreditsModal from './components/ClaimCreditsModal';
 import { getFingerprint } from './lib/fingerprint';
 import {
   transcribeAudio,
@@ -54,6 +55,7 @@ export default function Home() {
   const [usageLimits, setUsageLimits] = useState<UsageLimit | null>(null);
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showClaimModal, setShowClaimModal] = useState(false);
 
   useEffect(() => {
     // Initialize fingerprint
@@ -161,7 +163,12 @@ export default function Home() {
           <div className="mb-6 p-4 bg-white rounded-lg shadow">
             {usageLimits.is_paid ? (
               <div className="flex justify-between items-center">
-                <span className="text-green-600 font-semibold">Paid Account</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-green-600 font-semibold">Paid Account</span>
+                  {credits && credits.email && (
+                    <span className="text-sm text-gray-500">({credits.email})</span>
+                  )}
+                </div>
                 {credits && (
                   <span className="text-gray-700">
                     Credits: <span className="font-semibold">{credits.credits.toFixed(1)}</span>
@@ -170,19 +177,39 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-700">Free Tier</span>
-                  <button
-                    onClick={() => setShowCheckout(true)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Upgrade to Paid
-                  </button>
+                  <div className="flex gap-3">
+                    {(!credits || credits.credits === 0) && !credits?.email && (
+                      <button
+                        onClick={() => setShowClaimModal(true)}
+                        className="text-blue-600 hover:underline text-sm"
+                      >
+                        Claim Credits
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowCheckout(true)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Upgrade to Paid
+                    </button>
+                  </div>
                 </div>
                 <div className="text-sm text-gray-600">
                   <span>Tiny/Base remaining: {usageLimits.remaining_tiny_base}</span>
                   <span className="ml-4">Small remaining: {usageLimits.remaining_small}</span>
                 </div>
+              </div>
+            )}
+            {credits && credits.credits === 0 && !credits.email && (
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <button
+                  onClick={() => setShowClaimModal(true)}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Have credits? Claim them with your email
+                </button>
               </div>
             )}
           </div>
@@ -290,6 +317,19 @@ export default function Home() {
             onClose={() => setShowCheckout(false)}
             onSuccess={() => {
               setShowCheckout(false);
+              if (fingerprint) {
+                loadUsageData(fingerprint);
+              }
+            }}
+          />
+        )}
+
+        {showClaimModal && (
+          <ClaimCreditsModal
+            fingerprint={fingerprint}
+            onClose={() => setShowClaimModal(false)}
+            onSuccess={() => {
+              setShowClaimModal(false);
               if (fingerprint) {
                 loadUsageData(fingerprint);
               }

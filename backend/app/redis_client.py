@@ -44,6 +44,117 @@ class RedisClient:
             "credits": 0.0
         }
     
+    def find_usage_by_email(self, email: str) -> Optional[tuple[str, Dict[str, Any]]]:
+        """Find usage data by email. Returns (fingerprint, usage_data) or None"""
+        if not self.client:
+            return None
+        
+        # Check if email is already mapped to a fingerprint
+        mapped_fp = self.client.get(f"email_to_fingerprint:{email.lower()}")
+        if mapped_fp:
+            usage = self.get_usage(mapped_fp)
+            if usage.get("email", "").lower() == email.lower():
+                return (mapped_fp, usage)
+        
+        # Search all usage keys for matching email
+        cursor = 0
+        while True:
+            cursor, keys = self.client.scan(cursor, match="usage:*", count=100)
+            for key in keys:
+                data = self.client.get(key)
+                if data:
+                    usage = json.loads(data)
+                    if usage.get("email", "").lower() == email.lower():
+                        fingerprint = key.replace("usage:", "")
+                        return (fingerprint, usage)
+            if cursor == 0:
+                break
+        
+        return None
+    
+    def link_fingerprint_to_email(self, fingerprint: str, email: str) -> Dict[str, Any]:
+        """Link a fingerprint to an email account and merge credits"""
+        if not self.client:
+            return self.get_usage(fingerprint)
+        
+        email_lower = email.lower()
+        current_usage = self.get_usage(fingerprint)
+        
+        # Find existing usage by email
+        existing = self.find_usage_by_email(email_lower)
+        
+        if existing:
+            existing_fp, existing_usage = existing
+            
+            # If already linked to this fingerprint, return current usage
+            if existing_fp == fingerprint:
+                return current_usage
+            
+            # Merge credits and usage counts
+            merged_credits = existing_usage.get("credits", 0.0) + current_usage.get("credits", 0.0)
+            merged_tiny_base = max(
+                existing_usage.get("tiny_base_count", 0),
+                current_usage.get("tiny_base_count", 0)
+            )
+            merged_small = max(
+                existing_usage.get("small_count", 0),
+                current_usage.get("small_count", 0)
+            )
+            
+            # Update the existing fingerprint with merged data
+            existing_usage["credits"] = merged_credits
+            existing_usage["tiny_base_count"] = merged_tiny_base
+            existing_usage["small_count"] = merged_small
+            existing_usage["email"] = email_lower
+            existing_usage["is_paid"] = True
+            
+            self.client.setex(
+                f"usage:{existing_fp}",
+                86400 * 365,
+                json.dumps(existing_usage)
+            )
+            
+            # Update current fingerprint to point to email account
+            current_usage["email"] = email_lower
+            current_usage["credits"] = merged_credits
+            current_usage["tiny_base_count"] = merged_tiny_base
+            current_usage["small_count"] = merged_small
+            current_usage["is_paid"] = True
+            
+            self.client.setex(
+                f"usage:{fingerprint}",
+                86400 * 365,
+                json.dumps(current_usage)
+            )
+            
+            # Create email -> fingerprint mapping (use existing fingerprint as primary)
+            self.client.setex(
+                f"email_to_fingerprint:{email_lower}",
+                86400 * 365,
+                existing_fp
+            )
+            
+            return existing_usage
+        else:
+            # No existing account, just link this fingerprint to email
+            current_usage["email"] = email_lower
+            current_usage["is_paid"] = True
+            
+            self.client.setex(
+                f"usage:{fingerprint}",
+                86400 * 365,
+                json.dumps(current_usage)
+            )
+            
+            # Create email -> fingerprint mapping
+            self.client.setex(
+                f"email_to_fingerprint:{email_lower}",
+                86400 * 365,
+                fingerprint
+            )
+            
+            return current_usage
+    
     def increment_usage(self, fingerprint: str, model: str, is_paid: bool = False):
         """Increment usage counter for a fingerprint"""
         if not self.client:

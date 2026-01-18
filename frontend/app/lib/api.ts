@@ -109,6 +109,26 @@ export async function getUsageLimits(fingerprint: string): Promise<UsageLimit> {
   return response.json();
 }
 
+export async function claimCredits(email: string, fingerprint: string): Promise<CreditBalance> {
+  const response = await fetch('/api/credits/claim', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      fingerprint,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to claim credits' }));
+    throw new Error(error.detail || 'Failed to claim credits');
+  }
+
+  return response.json();
+}
+
 export function getDownloadUrl(jobId: string, format: string, fingerprint: string): string {
   // Use frontend API route which proxies to backend with API key
   return `/api/download/${jobId}/${format}?fingerprint=${encodeURIComponent(fingerprint)}`;
