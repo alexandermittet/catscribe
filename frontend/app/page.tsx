@@ -54,8 +54,21 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [usageLimits, setUsageLimits] = useState<UsageLimit | null>(null);
   const [credits, setCredits] = useState<CreditBalance | null>(null);
+  const [loadingUsage, setLoadingUsage] = useState(true);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
+
+  // Default fallback values
+  const defaultUsageLimits: UsageLimit = {
+    remaining_tiny_base: 3,
+    remaining_small: 1,
+    is_paid: false
+  };
+
+  const defaultCredits: CreditBalance = {
+    credits: 0,
+    email: undefined
+  };
 
   useEffect(() => {
     // Initialize fingerprint
@@ -84,6 +97,7 @@ export default function Home() {
   }, []);
 
   const loadUsageData = async (fp: string) => {
+    setLoadingUsage(true);
     try {
       const [limits, creditBalance] = await Promise.all([
         getUsageLimits(fp),
@@ -93,6 +107,11 @@ export default function Home() {
       setCredits(creditBalance);
     } catch (err) {
       console.error('Failed to load usage data:', err);
+      // Set default fallback values on error
+      setUsageLimits(defaultUsageLimits);
+      setCredits(defaultCredits);
+    } finally {
+      setLoadingUsage(false);
     }
   };
 
@@ -138,14 +157,15 @@ export default function Home() {
   };
 
   const canUseModel = (modelValue: string): boolean => {
-    if (!usageLimits) return true;
-    if (usageLimits.is_paid) return true;
+    // Use fallback defaults if usageLimits is null
+    const limits = usageLimits || defaultUsageLimits;
+    if (limits.is_paid) return true;
     
     if (modelValue === 'small') {
-      return usageLimits.remaining_small > 0 && usageLimits.remaining_tiny_base === 0;
+      return limits.remaining_small > 0 && limits.remaining_tiny_base === 0;
     }
     if (modelValue === 'tiny' || modelValue === 'base') {
-      return usageLimits.remaining_tiny_base > 0;
+      return limits.remaining_tiny_base > 0;
     }
     return false;
   };
@@ -159,61 +179,65 @@ export default function Home() {
         </div>
 
         {/* Usage Info */}
-        {usageLimits && (
-          <div className="mb-6 p-4 bg-white rounded-lg shadow">
-            {usageLimits.is_paid ? (
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <span className="text-green-600 font-semibold">Paid Account</span>
-                  {credits && credits.email && (
-                    <span className="text-sm text-gray-500">({credits.email})</span>
-                  )}
-                </div>
-                {credits && (
-                  <span className="text-gray-700">
-                    Credits: <span className="font-semibold">{credits.credits.toFixed(1)}</span>
-                  </span>
+        <div className="mb-6 p-4 bg-white rounded-lg shadow">
+          {loadingUsage ? (
+            <div className="text-center text-gray-500">
+              Loading account information...
+            </div>
+          ) : (usageLimits?.is_paid ? (
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <span className="text-green-600 font-semibold">Paid Account</span>
+                {credits && credits.email && (
+                  <span className="text-sm text-gray-500">({credits.email})</span>
                 )}
               </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">Free Tier</span>
-                  <div className="flex gap-3">
-                    {(!credits || credits.credits === 0) && !credits?.email && (
-                      <button
-                        onClick={() => setShowClaimModal(true)}
-                        className="text-blue-600 hover:underline text-sm"
-                      >
-                        Claim Credits
-                      </button>
-                    )}
+              {credits && (
+                <span className="text-gray-700">
+                  Credits: <span className="font-semibold">{credits.credits.toFixed(1)}</span>
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">Free Tier</span>
+                <div className="flex gap-3">
+                  {(!credits || credits.credits === 0) && !credits?.email && (
                     <button
-                      onClick={() => setShowCheckout(true)}
-                      className="text-blue-600 hover:underline"
+                      onClick={() => setShowClaimModal(true)}
+                      className="text-blue-600 hover:underline text-sm"
                     >
-                      Upgrade to Paid
+                      Claim Credits
                     </button>
-                  </div>
+                  )}
+                  <button
+                    onClick={() => setShowCheckout(true)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Upgrade to Paid
+                  </button>
                 </div>
+              </div>
+              {usageLimits && (
                 <div className="text-sm text-gray-600">
                   <span>Tiny/Base remaining: {usageLimits.remaining_tiny_base}</span>
                   <span className="ml-4">Small remaining: {usageLimits.remaining_small}</span>
                 </div>
-              </div>
-            )}
-            {credits && credits.credits === 0 && !credits.email && (
-              <div className="mt-2 pt-2 border-t border-gray-200">
-                <button
-                  onClick={() => setShowClaimModal(true)}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Have credits? Claim them with your email
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          ))}
+          {!loadingUsage && credits && credits.credits === 0 && !credits.email && (
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <button
+                onClick={() => setShowClaimModal(true)}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Have credits? Claim them with your email
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Main Form */}
         <div className="bg-white rounded-lg shadow-lg p-6">
