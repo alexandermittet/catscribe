@@ -1,0 +1,97 @@
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'X-API-Key': API_KEY,
+  },
+});
+
+export interface TranscriptionRequest {
+  language: string;
+  model: string;
+}
+
+export interface TranscriptionResponse {
+  job_id: string;
+  status: string;
+  message?: string;
+}
+
+export interface TranscriptionResult {
+  job_id: string;
+  text: string;
+  language: string;
+  duration: number;
+  download_urls: {
+    txt: string;
+    srt: string;
+    vtt: string;
+  };
+}
+
+export interface CreditBalance {
+  credits: number;
+  email?: string;
+}
+
+export interface UsageLimit {
+  remaining_tiny_base: number;
+  remaining_small: number;
+  is_paid: boolean;
+}
+
+export async function transcribeAudio(
+  file: File,
+  fingerprint: string,
+  language: string,
+  model: string
+): Promise<TranscriptionResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('language', language);
+  formData.append('model', model);
+  formData.append('fingerprint', fingerprint);
+
+  const response = await api.post<TranscriptionResponse>('/transcribe', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+}
+
+export async function getTranscription(
+  jobId: string,
+  fingerprint: string
+): Promise<TranscriptionResult> {
+  const response = await api.get<TranscriptionResult>(`/transcription/${jobId}`, {
+    params: { fingerprint },
+  });
+  return response.data;
+}
+
+export async function getCredits(fingerprint: string): Promise<CreditBalance> {
+  const response = await fetch(`/api/credits?fingerprint=${encodeURIComponent(fingerprint)}`);
+  if (!response.ok) {
+    throw new Error('Failed to get credits');
+  }
+  return response.json();
+}
+
+export async function getUsageLimits(fingerprint: string): Promise<UsageLimit> {
+  const response = await fetch(`/api/usage?fingerprint=${encodeURIComponent(fingerprint)}`);
+  if (!response.ok) {
+    throw new Error('Failed to get usage limits');
+  }
+  return response.json();
+}
+
+export function getDownloadUrl(jobId: string, format: string, fingerprint: string): string {
+  // Use frontend API route which proxies to backend with API key
+  return `/api/download/${jobId}/${format}?fingerprint=${encodeURIComponent(fingerprint)}`;
+}

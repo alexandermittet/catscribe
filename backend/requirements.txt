@@ -1,0 +1,12 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+openai-whisper==20231117
+ffmpeg-python==0.2.0
+redis==5.0.1
+slowapi==0.1.9
+python-jose[cryptography]==3.3.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+mutagen==1.47.0
+python-magic==0.4.27
