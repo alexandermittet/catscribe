@@ -10,6 +10,62 @@ A web application for transcribing audio files using OpenAI Whisper, with a free
 - **Database**: Upstash Redis
 - **Payments**: Stripe Checkout
 
+### Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph Client["Client Browser"]
+        User[User]
+        UI[Next.js Frontend<br/>Vercel]
+    end
+    
+    subgraph FrontendServices["Frontend Services"]
+        APIProxy[Next.js API Routes<br/>/api/transcribe<br/>/api/checkout<br/>/api/webhook]
+        Fingerprint[FingerprintJS<br/>Device Tracking]
+    end
+    
+    subgraph BackendServices["Backend Services - Fly.dev"]
+        FastAPI[FastAPI Backend<br/>Stockholm ARN]
+        Whisper[OpenAI Whisper<br/>Model Cache]
+        Storage[Persistent Volume<br/>Models & Transcripts]
+    end
+    
+    subgraph ExternalServices["External Services"]
+        Stripe[Stripe Checkout<br/>Payment Processing]
+        Redis[Upstash Redis<br/>Usage & Credits]
+    end
+    
+    User -->|Upload Audio| UI
+    UI -->|API Calls| APIProxy
+    UI -->|Device ID| Fingerprint
+    
+    APIProxy -->|Proxy Requests| FastAPI
+    APIProxy -->|Create Session| Stripe
+    Stripe -->|Webhook| APIProxy
+    
+    FastAPI -->|Load Models| Whisper
+    Whisper -->|Cache Models| Storage
+    FastAPI -->|Store Outputs| Storage
+    FastAPI -->|Check Usage| Redis
+    FastAPI -->|Update Credits| Redis
+    
+    APIProxy -->|Add Credits| Redis
+    
+    style UI fill:#0070f3
+    style FastAPI fill:#00d4aa
+    style Stripe fill:#635bff
+    style Redis fill:#e11d48
+    style Storage fill:#8b5cf6
+```
+
+### Data Flow
+
+1. **File Upload**: User uploads audio → Frontend → Backend API
+2. **Transcription**: Backend loads Whisper model → Processes audio → Stores results
+3. **Usage Tracking**: Backend checks Redis for free tier limits
+4. **Payment Flow**: User purchases credits → Stripe Checkout → Webhook → Redis credits updated
+5. **Result Retrieval**: User downloads transcription files from backend storage
+
 ## Features
 
 - Drag-and-drop audio file upload
