@@ -183,13 +183,10 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ## Credit Pricing
 
-| Model | Cost per minute |
-|-------|-----------------|
-| Tiny  | 0.5 credits     |
-| Base  | 1 credit        |
-| Small | 2 credits       |
-| Medium| 4 credits       |
-| Large | 8 credits       |
+| Tier    | Description                                  |
+|---------|----------------------------------------------|
+| Free    | Free allowance: 45 minutes (3 tiny/base + 1 small)        |
+| Premium | Pay-per-use: minute packages (30, 60, 120 min) |
 
 ### Pricing config
 
