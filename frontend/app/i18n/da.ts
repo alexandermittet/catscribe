@@ -21,7 +21,7 @@ export const da = {
   page: {
     title: "catscribe",
     subtitle: "Cute kat transskriberer dine interviewbånd på (næsten) alle sprog",
-    note: "note: kat har ikke den bedste hørelse når folk som er langt væk, så for de bedste resultater, skal du helst holde din optager så tæt som muligt på den person der taler, så kat kan høre hvad der bliver sagt højt og tydeligt",
+    note: "note: kat har ikke den bedste hørelse når folk er langt væk, så for de bedste resultater, skal du helst holde din optager så tæt som muligt på den person der taler, så kat kan høre hvad der bliver sagt højt og tydeligt",
   },
 
   // Language names (keep emojis, translate language names)
