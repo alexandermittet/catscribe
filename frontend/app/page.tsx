@@ -364,6 +364,7 @@ export default function Home() {
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                style={{ backgroundColor: '#f7adff' }}
                 disabled={isTranscribing}
               >
                 {LANGUAGES.map((lang) => (
@@ -386,6 +387,7 @@ export default function Home() {
                     ? 'border-red-300 bg-red-50'
                     : 'border-gray-300'
                 }`}
+                style={{ backgroundColor: !canUseModel(model) ? undefined : '#f7adff' }}
                 disabled={isTranscribing}
               >
                 {MODELS.map((m) => (
@@ -414,7 +416,20 @@ export default function Home() {
           <button
             onClick={handleTranscribe}
             disabled={!selectedFile || isTranscribing || !canUseModel(model)}
-            className="mt-6 w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="mt-6 w-full px-6 py-3 text-white font-semibold rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            style={{
+              backgroundColor: (!selectedFile || isTranscribing || !canUseModel(model)) ? undefined : '#591E45',
+            }}
+            onMouseEnter={(e) => {
+              if (selectedFile && !isTranscribing && canUseModel(model)) {
+                e.currentTarget.style.backgroundColor = '#6d2a54';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedFile && !isTranscribing && canUseModel(model)) {
+                e.currentTarget.style.backgroundColor = '#591E45';
+              }
+            }}
           >
             {isTranscribing ? 'Transcribing...' : 'Start Transcription'}
           </button>
