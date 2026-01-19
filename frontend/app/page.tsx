@@ -12,11 +12,11 @@ import { getFingerprint } from './lib/fingerprint';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
 import {
   transcribeAudio,
-  getCredits,
+  getMinutes,
   getUsageLimits,
   TranscriptionResult,
   UsageLimit,
-  CreditBalance,
+  MinutesBalance,
 } from './lib/api';
 
 const LANGUAGES = [

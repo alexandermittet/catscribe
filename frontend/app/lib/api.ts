@@ -38,6 +38,11 @@ export interface CreditBalance {
   email?: string;
 }
 
+export interface MinutesBalance {
+  minutes: number;
+  email?: string;
+}
+
 export interface UsageLimit {
   remaining_tiny_base: number;
   remaining_small: number;
