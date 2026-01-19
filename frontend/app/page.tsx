@@ -18,30 +18,75 @@ import {
 } from './lib/api';
 
 const LANGUAGES = [
-  { value: 'auto', label: 'Auto-detect' },
-  { value: 'en', label: 'English' },
-  { value: 'da', label: 'Danish' },
-  { value: 'sv', label: 'Swedish' },
-  { value: 'no', label: 'Norwegian' },
-  { value: 'de', label: 'German' },
-  { value: 'fr', label: 'French' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'it', label: 'Italian' },
-  { value: 'pt', label: 'Portuguese' },
-  { value: 'nl', label: 'Dutch' },
-  { value: 'pl', label: 'Polish' },
-  { value: 'ru', label: 'Russian' },
-  { value: 'ja', label: 'Japanese' },
-  { value: 'zh', label: 'Chinese' },
-  { value: 'ko', label: 'Korean' },
+  { value: 'auto', label: '🌐 Auto-detect' },
+  // Scandinavian languages
+  { value: 'da', label: '🇩🇰 Danish' },
+  { value: 'no', label: '🇳🇴 Norwegian' },
+  { value: 'sv', label: '🇸🇪 Swedish' },
+  { value: 'is', label: '🇮🇸 Icelandic' },
+  { value: 'fi', label: '🇫🇮 Finnish' },
+  // Priority languages
+  { value: 'en', label: '🇬🇧 English' },
+  { value: 'uk', label: '🇺🇦 Ukrainian' },
+  // All other languages alphabetically
+  { value: 'af', label: '🇿🇦 Afrikaans' },
+  { value: 'ar', label: '🇸🇦 Arabic' },
+  { value: 'hy', label: '🇦🇲 Armenian' },
+  { value: 'az', label: '🇦🇿 Azerbaijani' },
+  { value: 'be', label: '🇧🇾 Belarusian' },
+  { value: 'bs', label: '🇧🇦 Bosnian' },
+  { value: 'bg', label: '🇧🇬 Bulgarian' },
+  { value: 'ca', label: '🇪🇸 Catalan' },
+  { value: 'zh', label: '🇨🇳 Chinese' },
+  { value: 'hr', label: '🇭🇷 Croatian' },
+  { value: 'cs', label: '🇨🇿 Czech' },
+  { value: 'nl', label: '🇳🇱 Dutch' },
+  { value: 'et', label: '🇪🇪 Estonian' },
+  { value: 'fr', label: '🇫🇷 French' },
+  { value: 'gl', label: '🇪🇸 Galician' },
+  { value: 'de', label: '🇩🇪 German' },
+  { value: 'el', label: '🇬🇷 Greek' },
+  { value: 'he', label: '🇮🇱 Hebrew' },
+  { value: 'hi', label: '🇮🇳 Hindi' },
+  { value: 'hu', label: '🇭🇺 Hungarian' },
+  { value: 'id', label: '🇮🇩 Indonesian' },
+  { value: 'it', label: '🇮🇹 Italian' },
+  { value: 'ja', label: '🇯🇵 Japanese' },
+  { value: 'kn', label: '🇮🇳 Kannada' },
+  { value: 'kk', label: '🇰🇿 Kazakh' },
+  { value: 'ko', label: '🇰🇷 Korean' },
+  { value: 'lv', label: '🇱🇻 Latvian' },
+  { value: 'lt', label: '🇱🇹 Lithuanian' },
+  { value: 'mk', label: '🇲🇰 Macedonian' },
+  { value: 'ms', label: '🇲🇾 Malay' },
+  { value: 'mr', label: '🇮🇳 Marathi' },
+  { value: 'mi', label: '🇳🇿 Maori' },
+  { value: 'ne', label: '🇳🇵 Nepali' },
+  { value: 'fa', label: '🇮🇷 Persian' },
+  { value: 'pl', label: '🇵🇱 Polish' },
+  { value: 'pt', label: '🇵🇹 Portuguese' },
+  { value: 'ro', label: '🇷🇴 Romanian' },
+  { value: 'ru', label: '🇷🇺 Russian' },
+  { value: 'sr', label: '🇷🇸 Serbian' },
+  { value: 'sk', label: '🇸🇰 Slovak' },
+  { value: 'sl', label: '🇸🇮 Slovenian' },
+  { value: 'es', label: '🇪🇸 Spanish' },
+  { value: 'sw', label: '🇹🇿 Swahili' },
+  { value: 'tl', label: '🇵🇭 Tagalog' },
+  { value: 'ta', label: '🇮🇳 Tamil' },
+  { value: 'th', label: '🇹🇭 Thai' },
+  { value: 'tr', label: '🇹🇷 Turkish' },
+  { value: 'ur', label: '🇵🇰 Urdu' },
+  { value: 'vi', label: '🇻🇳 Vietnamese' },
+  { value: 'cy', label: '🇬🇧 Welsh' },
 ];
 
 const MODELS = [
-  { value: 'tiny', label: 'Tiny (Fastest, Lower Quality)' },
-  { value: 'base', label: 'Base (Balanced)' },
-  { value: 'small', label: 'Small (Better Quality)' },
-  { value: 'medium', label: 'Medium (High Quality)' },
-  { value: 'large', label: 'Large (Best Quality)' },
+  { value: 'tiny', label: '😴 Lazy Cat (Fastest, Lower Quality)' },
+  { value: 'base', label: '🐱 Everyday Cat (Balanced)' },
+  { value: 'small', label: '📚 Studious Cat (Better Quality, Slower)' },
+  { value: 'medium', label: '🎯 Perfectionistic Cat (High Quality, A bit Slower)' },
+  { value: 'large', label: '💪 Hyperpolyglot Gigachad Cat (Best Quality, A lot slower)' },
 ];
 
 export default function Home() {
@@ -183,7 +228,7 @@ export default function Home() {
 
   return (
     <>
-      {/* Cursor-following spotlight - behind content but above background */}
+      {/* Mouse-Cursor-following spotlight - behind content but above background */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
