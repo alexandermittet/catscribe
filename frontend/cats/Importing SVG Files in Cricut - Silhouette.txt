@@ -1,0 +1,33 @@
+Before using the files, it is necessary to unzip the zipped folder that contains them. Right-click the folder, and then select "Extract All" (or similar) and then follow the instructions.
+If you don't have a program already installed on your computer, there are many free programs available on the web.
+
+
+IMPORTANT NOTICE:
+Most computers show a Chrome, Firefox, or Internet Explorer icon as the SVG file.
+
+
+Importing SVG Files in Cricut Design Space:
+
+- Log in to Design Space
+- Click the Create New Project button
+- Click the Upload Image button
+- Click the Vector Upload button
+- Click the Browse button and locate the SVG file that you want to import
+
+
+Importing SVG / DXF files in Silhouette Studio:
+
+Check which version of Studio is available on your PC. If it’s the free version that came with your machine, this is the Basic Edition, and you must use the DXF files. Unfortunately this type of file doesn't support colors or compound paths and you will need to use the tools to be able to edit the file and cut the file as intended. 
+If you paid for the upgrade, you have Designer Edition and must use SVG files.
+
+- Open Studio, and select File > Import > Import to Library
+from the top menu.
+- Navigate to the location where you have saved your files, and select the file.
+- Your Library will open, and Studio will automatically place the file in your My Own Designs folder.
+- Open the file by double clicking the thumbnail image in your Library.
+
+If the .studio3 file is included in the download, you can directly upload it.
+
+
+
+

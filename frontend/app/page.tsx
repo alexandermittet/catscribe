@@ -182,20 +182,40 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      {/* Cursor-following spotlight */}
+    <>
+      {/* Cursor-following spotlight - behind content but above background */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
           background: `radial-gradient(circle 300px at ${mousePosition.x}px ${mousePosition.y}px, rgba(255, 255, 255, 0.25) 0%, transparent 70%)`,
-          zIndex: 0,
+          zIndex: 1,
         }}
       />
-      <div className="max-w-4xl mx-auto relative z-10">
+      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ zIndex: 10 }}>
+        {/* Cat image - desktop left, mobile above */}
+        <div className="hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
+          <Image
+            src="/nerd-cat.svg"
+            alt="Nerd Cat"
+            width={200}
+            height={200}
+            className="opacity-80"
+          />
+        </div>
+        <div className="lg:hidden flex justify-center mb-6">
+          <Image
+            src="/nerd-cat.svg"
+            alt="Nerd Cat"
+            width={150}
+            height={150}
+            className="opacity-80"
+          />
+        </div>
+        <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">catscribe</h1>
           <p className="text-lg text-gray-600">Cute cat that takes your interview tapes and thoroughly transcribes them in (almost) any language</p>
-          <p className="text-sm text-gray-500 mt-3">Note: Cat doesn't have the best hearing when far away, for best results keep your recorder close to the person speaking so cat can hear whats being said loud and clear</p>
+          <p className="text-sm text-gray-500 mt-3">Note: Cat doesn&apos;t have the best hearing when far away, for best results keep your recorder close to the person speaking so cat can hear whats being said loud and clear</p>
         </div>
 
         {/* Usage Info */}
@@ -396,8 +416,12 @@ export default function Home() {
           <p className="text-sm text-gray-600">
             © {new Date().getFullYear()} <span className="font-semibold">admitted</span>. All rights reserved.
           </p>
+          <p className="text-xs text-gray-500 mt-2">
+            Designed by: <a href="https://www.ericadigitaldesign.etsy.com" target="_blank" rel="noopener noreferrer" className="hover:underline">www.ericadigitaldesign.etsy.com</a>
+          </p>
         </footer>
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }
