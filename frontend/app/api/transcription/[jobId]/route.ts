@@ -28,6 +28,10 @@ export async function GET(
     });
 
     const data = await response.json();
+    
+    // #region agent log
+    const fs = require('fs'); fs.appendFileSync('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', JSON.stringify({location:'route.ts:backend_response',message:'Received from backend',data:{jobId,status:data.status,statusType:typeof data.status,hasText:!!data.text,textLength:data.text?.length,backendStatus:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})+'\n');
+    // #endregion
 
     if (!response.ok) {
       return NextResponse.json(
@@ -35,6 +39,10 @@ export async function GET(
         { status: response.status }
       );
     }
+
+    // #region agent log
+    fs.appendFileSync('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', JSON.stringify({location:'route.ts:returning_to_frontend',message:'Returning to frontend',data:{jobId,status:data.status,statusType:typeof data.status,hasText:!!data.text},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})+'\n');
+    // #endregion
 
     return NextResponse.json(data);
   } catch (error: any) {

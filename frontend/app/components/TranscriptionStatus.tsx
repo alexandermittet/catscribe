@@ -47,10 +47,16 @@ export default function TranscriptionStatus({
     let isMounted = true;
 
     const poll = async () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:poll_entry',message:'Poll started',data:{jobId,isMounted},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       if (!isMounted) return;
       
       try {
         const result = await getTranscription(jobId, fingerprint);
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:poll_after_fetch',message:'Received result from API',data:{jobId,status:result.status,statusType:typeof result.status,hasText:!!result.text,textLength:result.text?.length,hasDownloadUrls:!!result.download_urls},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
+        // #endregion
         
         if (!isMounted) return;
         
@@ -96,15 +102,32 @@ export default function TranscriptionStatus({
         }
         
         // If completed, call onComplete
-        if (currentStatus === 'completed' || result.text?.length > 0) {
+        const isCompleted = currentStatus === 'completed' || result.text?.length > 0;
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:completion_check',message:'Checking completion',data:{jobId,currentStatus,statusComparison:currentStatus==='completed',hasText:result.text?.length>0,isCompleted,willCallOnComplete:isCompleted},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,E'})}).catch(()=>{});
+        // #endregion
+        if (isCompleted) {
           console.log(`[TranscriptionStatus] Job ${jobId} completed (status: ${currentStatus}, text length: ${result.text?.length}), calling onComplete`);
+          // #region agent log
+          fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:before_clear_interval',message:'About to clear interval and call onComplete',data:{jobId,intervalExists:!!pollIntervalRef.current},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
+          // #endregion
           if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = null;
           }
           // Ensure status is set to completed before calling onComplete
           setStatus('completed');
-          onCompleteRef.current(result);
+          try {
+            onCompleteRef.current(result);
+            // #region agent log
+            fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:after_onComplete',message:'onComplete called successfully',data:{jobId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+          } catch (error) {
+            // #region agent log
+            fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:onComplete_error',message:'onComplete threw error',data:{jobId,error:String(error)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            throw error;
+          }
         } else if (currentStatus === 'failed') {
           console.error(`[TranscriptionStatus] Job ${jobId} failed`);
           if (pollIntervalRef.current) {
@@ -137,10 +160,16 @@ export default function TranscriptionStatus({
     };
 
     // Poll immediately, then every 2 seconds
+    // #region agent log
+    fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:useEffect_setup',message:'Setting up polling interval',data:{jobId,fingerprint},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     poll();
     pollIntervalRef.current = setInterval(poll, 2000);
 
     return () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TranscriptionStatus.tsx:useEffect_cleanup',message:'Cleaning up polling interval',data:{jobId,intervalExists:!!pollIntervalRef.current},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       isMounted = false;
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);

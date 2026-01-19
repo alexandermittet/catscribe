@@ -213,11 +213,24 @@ export default function Home() {
   };
 
   const handleTranscriptionComplete = useCallback((transcriptionResult: TranscriptionResult) => {
-    setIsTranscribing(false);
-    setResult(transcriptionResult);
-    // Reload usage data
-    if (fingerprint) {
-      loadUsageData(fingerprint);
+    // #region agent log
+    fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleTranscriptionComplete',message:'handleTranscriptionComplete called',data:{jobId:transcriptionResult.job_id,hasText:!!transcriptionResult.text,textLength:transcriptionResult.text?.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    try {
+      setIsTranscribing(false);
+      setResult(transcriptionResult);
+      // Reload usage data
+      if (fingerprint) {
+        loadUsageData(fingerprint);
+      }
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleTranscriptionComplete_success',message:'handleTranscriptionComplete completed successfully',data:{jobId:transcriptionResult.job_id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+    } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:handleTranscriptionComplete_error',message:'handleTranscriptionComplete failed',data:{jobId:transcriptionResult.job_id,error:String(error)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      throw error;
     }
   }, [fingerprint, loadUsageData]);
 
