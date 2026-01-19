@@ -1,4 +1,4 @@
-import whisper
+from faster_whisper import WhisperModel
 import os
 import tempfile
 from typing import Optional
@@ -17,15 +17,17 @@ def get_model_cache_dir() -> str:
     return cache_dir
 
 
-def load_model(size: ModelSize) -> whisper.Whisper:
+def load_model(size: ModelSize) -> WhisperModel:
     """Load Whisper model, using cache if available"""
     size_str = size.value
     
     if size_str not in model_cache:
         cache_dir = get_model_cache_dir()
-        model_cache[size_str] = whisper.load_model(
+        model_cache[size_str] = WhisperModel(
             size_str,
-            download_root=cache_dir
+            download_root=cache_dir,
+            device="cpu",
+            compute_type="int8"
         )
     
     return model_cache[size_str]
@@ -37,7 +39,7 @@ def transcribe_audio(
     language: Optional[str] = None
 ) -> dict:
     """
-    Transcribe audio file using Whisper.
+    Transcribe audio file using faster-whisper.
     
     Returns:
         dict with keys: text, language, segments
@@ -47,17 +49,32 @@ def transcribe_audio(
     # Prepare language parameter
     lang = None if language == "auto" or language is None else language
     
-    # Run transcription
-    result = model.transcribe(
+    # Run transcription - faster-whisper returns (segments, info) tuple
+    segments, info = model.transcribe(
         audio_path,
-        language=lang,
-        verbose=False
+        language=lang
     )
     
+    # Convert segments generator to list and extract text
+    segments_list = list(segments)
+    
+    # Reconstruct full text from segments
+    text = " ".join([segment.text for segment in segments_list]).strip()
+    
+    # Convert segments to dict format for compatibility
+    segments_dict = [
+        {
+            "text": segment.text,
+            "start": segment.start,
+            "end": segment.end
+        }
+        for segment in segments_list
+    ]
+    
     return {
-        "text": result["text"].strip(),
-        "language": result["language"],
-        "segments": result.get("segments", [])
+        "text": text,
+        "language": info.language,
+        "segments": segments_dict
     }
 
 

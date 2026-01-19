@@ -14,14 +14,14 @@ export const da = {
   // Metadata
   meta: {
     title: "catscribe - Lydtransskriptionstjeneste",
-    description: "Sød kat der transskriberer dine lydfiler på næsten alle sprog",
+    description: "Cute kat som transskriberer dine lydfiler på næsten alle sprog",
   },
 
   // Main page
   page: {
     title: "catscribe",
-    subtitle: "Sød kat der tager dine interviewbånd og transskriberer dem på (næsten) alle sprog",
-    note: "note: kat har ikke den bedste hørelse når den er langt væk, for de bedste resultater, hold din optager tæt på den person der taler, så katten kan høre hvad der bliver sagt højt og tydeligt",
+    subtitle: "Cute kat som ta'r dine interviewbånd og transskriberer dem på (næsten) alle sprog",
+    note: "note: kat har ikke den bedste hørelse overfor folk som er langt væk, så for de bedste resultater, skal du helst holde din optager så tæt som muligt på den person der taler, så kat kan høre hvad der bliver sagt højt og tydeligt",
   },
 
   // Language names (keep emojis, translate language names)
