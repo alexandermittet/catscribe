@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'admitted - Audio Transcription Service',
-  description: 'Transcribe audio files using OpenAI Whisper',
+  title: 'catscribe - Audio Transcription Service',
+  description: 'Cute cat that transcribes your audio files in almost any language',
 }
 
 export default function RootLayout({

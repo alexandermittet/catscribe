@@ -7,6 +7,7 @@ import ResultDisplay from './components/ResultDisplay';
 import CheckoutModal from './components/CheckoutModal';
 import ClaimCreditsModal from './components/ClaimCreditsModal';
 import { getFingerprint } from './lib/fingerprint';
+import { FaGithub, FaLinkedin } from 'react-icons/fa';
 import {
   transcribeAudio,
   getCredits,
@@ -57,6 +58,7 @@ export default function Home() {
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Default fallback values
   const defaultUsageLimits: UsageLimit = {
@@ -94,6 +96,15 @@ export default function Home() {
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const loadUsageData = async (fp: string) => {
@@ -172,14 +183,23 @@ export default function Home() {
 
   return (
     <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      {/* Cursor-following spotlight */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle 300px at ${mousePosition.x}px ${mousePosition.y}px, rgba(255, 255, 255, 0.25) 0%, transparent 70%)`,
+          zIndex: 0,
+        }}
+      />
+      <div className="max-w-4xl mx-auto relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">admitted</h1>
-          <p className="text-lg text-gray-600">Transcribe audio files using OpenAI Whisper</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">catscribe</h1>
+          <p className="text-lg text-gray-600">Cute cat that takes your interview tapes and thoroughly transcribes them in (almost) any language</p>
+          <p className="text-sm text-gray-500 mt-3">Note: Cat doesn't have the best hearing when far away, for best results keep your recorder close to the person speaking so cat can hear whats being said loud and clear</p>
         </div>
 
         {/* Usage Info */}
-        <div className="mb-6 p-4 bg-white rounded-lg shadow">
+        <div className="mb-6 p-4 rounded-lg shadow" style={{ backgroundColor: '#F285CC' }}>
           {loadingUsage ? (
             <div className="text-center text-gray-500">
               Loading account information...
@@ -187,7 +207,7 @@ export default function Home() {
           ) : (usageLimits?.is_paid ? (
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <span className="text-green-600 font-semibold">Paid Account</span>
+                <span className="text-green-600 font-semibold">Premium Cat</span>
                 {credits && credits.email && (
                   <span className="text-sm text-gray-500">({credits.email})</span>
                 )}
@@ -201,7 +221,7 @@ export default function Home() {
           ) : (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-gray-700">Free Tier</span>
+                <span className="text-gray-700">Free Cat</span>
                 <button
                   onClick={() => setShowCheckout(true)}
                   className="text-blue-600 hover:underline"
@@ -230,7 +250,7 @@ export default function Home() {
         </div>
 
         {/* Main Form */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: '#F285CC' }}>
           <FileUpload
             onFileSelect={handleFileSelect}
             disabled={isTranscribing}
@@ -353,6 +373,26 @@ export default function Home() {
         
         {/* Footer with business name */}
         <footer className="mt-12 pt-8 border-t border-gray-200 text-center">
+          <div className="flex justify-center gap-4 mb-3">
+            <a
+              href="https://github.com/alexandermittet/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-700 hover:text-gray-900 transition-colors"
+              aria-label="GitHub"
+            >
+              <FaGithub size={24} />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/alexandermittet/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-700 hover:text-gray-900 transition-colors"
+              aria-label="LinkedIn"
+            >
+              <FaLinkedin size={24} />
+            </a>
+          </div>
           <p className="text-sm text-gray-600">
             © {new Date().getFullYear()} <span className="font-semibold">admitted</span>. All rights reserved.
           </p>
