@@ -7,6 +7,7 @@ import TranscriptionStatus from './components/TranscriptionStatus';
 import ResultDisplay from './components/ResultDisplay';
 import CheckoutModal from './components/CheckoutModal';
 import ClaimCreditsModal from './components/ClaimCreditsModal';
+import ClaimMinutesModal from './components/ClaimMinutesModal';
 import { getFingerprint } from './lib/fingerprint';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
 import {
@@ -135,7 +136,7 @@ export default function Home() {
     } finally {
       setLoadingUsage(false);
     }
-  }, [defaultUsageLimits, defaultCredits]);
+  }, []);
 
   useEffect(() => {
     // Initialize fingerprint
