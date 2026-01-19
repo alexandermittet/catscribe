@@ -193,8 +193,19 @@ export default function Home() {
       />
       <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ zIndex: 10 }}>
         <div className="max-w-4xl mx-auto relative">
-        {/* Cat image - desktop left, mobile above */}
+        {/* Tape recorder image - desktop left, mobile left */}
         <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ left: 'calc((100vw - 56rem) / 4 - 100px)' }}>
+          <img
+            src="/tape-recorder.png"
+            alt="Tape Recorder"
+            width={200}
+            height={200}
+            className="opacity-80"
+            style={{ maxWidth: '200px', height: 'auto', objectFit: 'contain' }}
+          />
+        </div>
+        {/* Cat image - desktop right, mobile right */}
+        <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ right: 'calc((100vw - 56rem) / 4 - 100px)' }}>
           <img
             src="/nerd-cat.svg"
             alt="Nerd Cat"
@@ -204,7 +215,16 @@ export default function Home() {
             style={{ maxWidth: '200px', height: 'auto' }}
           />
         </div>
-        <div className="lg:hidden flex justify-center mb-6">
+        {/* Mobile: both images side by side above content */}
+        <div className="lg:hidden flex justify-center items-center gap-4 mb-6">
+          <img
+            src="/tape-recorder.png"
+            alt="Tape Recorder"
+            width={150}
+            height={150}
+            className="opacity-80"
+            style={{ maxWidth: '150px', height: 'auto', objectFit: 'contain' }}
+          />
           <img
             src="/nerd-cat.svg"
             alt="Nerd Cat"
