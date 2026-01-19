@@ -246,7 +246,6 @@ export default function Home() {
             alt="Tape Recorder"
             width={200}
             height={200}
-            className="opacity-80"
             style={{ maxWidth: '200px', height: 'auto' }}
           />
         </div>
@@ -268,7 +267,6 @@ export default function Home() {
             alt="Tape Recorder"
             width={150}
             height={150}
-            className="opacity-80"
             style={{ maxWidth: '150px', height: 'auto' }}
           />
           <Image
@@ -276,7 +274,6 @@ export default function Home() {
             alt="Nerd Cat"
             width={150}
             height={150}
-            className="opacity-80"
             style={{ maxWidth: '150px', height: 'auto' }}
           />
         </div>
@@ -364,7 +361,7 @@ export default function Home() {
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                style={{ backgroundColor: '#f7adff' }}
+                style={{ backgroundColor: '#F277C7' }}
                 disabled={isTranscribing}
               >
                 {LANGUAGES.map((lang) => (
@@ -387,7 +384,7 @@ export default function Home() {
                     ? 'border-red-300 bg-red-50'
                     : 'border-gray-300'
                 }`}
-                style={{ backgroundColor: !canUseModel(model) ? undefined : '#f7adff' }}
+                style={{ backgroundColor: !canUseModel(model) ? undefined : '#F277C7' }}
                 disabled={isTranscribing}
               >
                 {MODELS.map((m) => (
