@@ -19,9 +19,9 @@ export function FontProvider({ children }: { children: ReactNode }) {
     if (typeof document !== 'undefined') {
       const body = document.body;
       if (fontPreference === 'barbie') {
-        body.style.fontFamily = 'barbie, sans-serif';
+        body.classList.add('font-barbie');
       } else {
-        body.style.fontFamily = '';
+        body.classList.remove('font-barbie');
       }
     }
   };

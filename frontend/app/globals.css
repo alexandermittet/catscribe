@@ -4,7 +4,12 @@
 
 @font-face {
   font-family: barbie;
-  src: url('https://sakuradreams.neocities.org/Fonts/barbie.ttf');
+  src: url('/fonts/barbie.ttf');
+  font-display: swap;
+}
+
+body.font-barbie {
+  font-family: barbie, sans-serif !important;
 }
 
 html {

@@ -54,15 +54,30 @@ export default function TranscriptionStatus({
         
         if (!isMounted) return;
         
-        // Update status
-        const currentStatus = result.status || 'processing';
+        // Update status - check multiple indicators
+        let currentStatus = result.status;
+        
+        // Fallback: if we have text and download URLs, it's completed
+        if (!currentStatus && result.text && result.text.length > 0 && result.download_urls && Object.keys(result.download_urls).length > 0) {
+          currentStatus = 'completed';
+          console.log(`[TranscriptionStatus] Job ${jobId} - status missing but has text and download URLs, treating as completed`);
+        }
+        
+        // Default to processing if no status
+        if (!currentStatus) {
+          currentStatus = 'processing';
+        }
+        
         console.log(`[TranscriptionStatus] Job ${jobId} status: ${currentStatus}`, {
           progress: result.progress,
           elapsed_time: result.elapsed_time,
           estimated_total_time: result.estimated_total_time,
           time_remaining: result.time_remaining,
-          text_length: result.text?.length
+          text_length: result.text?.length,
+          has_download_urls: !!result.download_urls,
+          status_from_result: result.status
         });
+        console.log(`[TranscriptionStatus] Status check - currentStatus: "${currentStatus}", type: ${typeof currentStatus}, === 'completed': ${currentStatus === 'completed'}`);
         
         setStatus(currentStatus);
         
@@ -81,12 +96,14 @@ export default function TranscriptionStatus({
         }
         
         // If completed, call onComplete
-        if (currentStatus === 'completed') {
-          console.log(`[TranscriptionStatus] Job ${jobId} completed, calling onComplete`);
+        if (currentStatus === 'completed' || result.text?.length > 0) {
+          console.log(`[TranscriptionStatus] Job ${jobId} completed (status: ${currentStatus}, text length: ${result.text?.length}), calling onComplete`);
           if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = null;
           }
+          // Ensure status is set to completed before calling onComplete
+          setStatus('completed');
           onCompleteRef.current(result);
         } else if (currentStatus === 'failed') {
           console.error(`[TranscriptionStatus] Job ${jobId} failed`);
