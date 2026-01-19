@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import FileUpload from './components/FileUpload';
 import TranscriptionStatus from './components/TranscriptionStatus';
 import ResultDisplay from './components/ResultDisplay';
@@ -89,6 +90,18 @@ const MODELS = [
   { value: 'large', label: '💪 Hyperpolyglot Gigachad Cat (Best Quality, A lot slower)' },
 ];
 
+// Default fallback values
+const defaultUsageLimits: UsageLimit = {
+  remaining_tiny_base: 45,
+  remaining_small: 5,
+  is_paid: false
+};
+
+const defaultCredits: CreditBalance = {
+  credits: 0,
+  email: undefined
+};
+
 export default function Home() {
   const [fingerprint, setFingerprint] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -105,17 +118,24 @@ export default function Home() {
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Default fallback values
-  const defaultUsageLimits: UsageLimit = {
-    remaining_tiny_base: 45,
-    remaining_small: 5,
-    is_paid: false
-  };
-
-  const defaultCredits: CreditBalance = {
-    credits: 0,
-    email: undefined
-  };
+  const loadUsageData = useCallback(async (fp: string) => {
+    setLoadingUsage(true);
+    try {
+      const [limits, creditBalance] = await Promise.all([
+        getUsageLimits(fp),
+        getCredits(fp),
+      ]);
+      setUsageLimits(limits);
+      setCredits(creditBalance);
+    } catch (err) {
+      console.error('Failed to load usage data:', err);
+      // Set default fallback values on error
+      setUsageLimits(defaultUsageLimits);
+      setCredits(defaultCredits);
+    } finally {
+      setLoadingUsage(false);
+    }
+  }, [defaultUsageLimits, defaultCredits]);
 
   useEffect(() => {
     // Initialize fingerprint
@@ -141,7 +161,7 @@ export default function Home() {
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, []);
+  }, [loadUsageData]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -151,25 +171,6 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-
-  const loadUsageData = async (fp: string) => {
-    setLoadingUsage(true);
-    try {
-      const [limits, creditBalance] = await Promise.all([
-        getUsageLimits(fp),
-        getCredits(fp),
-      ]);
-      setUsageLimits(limits);
-      setCredits(creditBalance);
-    } catch (err) {
-      console.error('Failed to load usage data:', err);
-      // Set default fallback values on error
-      setUsageLimits(defaultUsageLimits);
-      setCredits(defaultCredits);
-    } finally {
-      setLoadingUsage(false);
-    }
-  };
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -240,7 +241,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto relative">
         {/* Tape recorder image - desktop left, mobile left */}
         <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ left: 'calc((100vw - 56rem) / 4 - 100px)' }}>
-          <img
+          <Image
             src="/tape-recorder.svg"
             alt="Tape Recorder"
             width={200}
@@ -251,7 +252,7 @@ export default function Home() {
         </div>
         {/* Cat image - desktop right, mobile right */}
         <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ right: 'calc((100vw - 56rem) / 4 - 100px)' }}>
-          <img
+          <Image
             src="/nerd-cat.svg"
             alt="Nerd Cat"
             width={200}
@@ -262,7 +263,7 @@ export default function Home() {
         </div>
         {/* Mobile: both images side by side above content */}
         <div className="lg:hidden flex justify-center items-center gap-4 mb-6">
-          <img
+          <Image
             src="/tape-recorder.svg"
             alt="Tape Recorder"
             width={150}
@@ -270,7 +271,7 @@ export default function Home() {
             className="opacity-80"
             style={{ maxWidth: '150px', height: 'auto' }}
           />
-          <img
+          <Image
             src="/nerd-cat.svg"
             alt="Nerd Cat"
             width={150}
