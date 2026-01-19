@@ -194,21 +194,23 @@ export default function Home() {
       <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ zIndex: 10 }}>
         {/* Cat image - desktop left, mobile above */}
         <div className="hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
-          <Image
+          <img
             src="/nerd-cat.svg"
             alt="Nerd Cat"
             width={200}
             height={200}
             className="opacity-80"
+            style={{ maxWidth: '200px', height: 'auto' }}
           />
         </div>
         <div className="lg:hidden flex justify-center mb-6">
-          <Image
+          <img
             src="/nerd-cat.svg"
             alt="Nerd Cat"
             width={150}
             height={150}
             className="opacity-80"
+            style={{ maxWidth: '150px', height: 'auto' }}
           />
         </div>
         <div className="max-w-4xl mx-auto">
