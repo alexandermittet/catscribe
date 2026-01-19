@@ -192,8 +192,9 @@ export default function Home() {
         }}
       />
       <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ zIndex: 10 }}>
+        <div className="max-w-4xl mx-auto relative">
         {/* Cat image - desktop left, mobile above */}
-        <div className="hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
+        <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ left: 'calc((100vw - 56rem) / 4 - 100px)' }}>
           <img
             src="/nerd-cat.svg"
             alt="Nerd Cat"
@@ -213,7 +214,6 @@ export default function Home() {
             style={{ maxWidth: '150px', height: 'auto' }}
           />
         </div>
-        <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">catscribe</h1>
           <p className="text-lg text-gray-600">Cute cat that takes your interview tapes and thoroughly transcribes them in (almost) any language</p>
@@ -419,7 +419,10 @@ export default function Home() {
             © {new Date().getFullYear()} <span className="font-semibold">admitted</span>. All rights reserved.
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            Designed by: <a href="https://www.ericadigitaldesign.etsy.com" target="_blank" rel="noopener noreferrer" className="hover:underline">www.ericadigitaldesign.etsy.com</a>
+            Designed by Alexander Mittet
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Cat drawing by: <a href="https://www.ericadigitaldesign.etsy.com" target="_blank" rel="noopener noreferrer" className="hover:underline">www.ericadigitaldesign.etsy.com</a>
           </p>
         </footer>
         </div>
