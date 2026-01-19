@@ -196,15 +196,25 @@ export default function Home() {
       return;
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:193',message:'handleTranscribe called',data:{model,language,filename:selectedFile.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
+    // #endregion
+
     setIsTranscribing(true);
     setError(null);
     setResult(null);
 
     try {
       const response = await transcribeAudio(selectedFile, fingerprint, language, model);
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:205',message:'transcribeAudio success',data:{job_id:response.job_id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
+      // #endregion
       setJobId(response.job_id);
     } catch (err: any) {
       setIsTranscribing(false);
+      // #region agent log
+      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:211',message:'transcribeAudio error',data:{errorMessage:err.message,errorStack:err.stack,errorType:err.constructor.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E'})}).catch(()=>{});
+      // #endregion
       const errorMessage = err.message || err.response?.data?.detail || err.response?.data?.message || t('errors.transcriptionFailed');
       setError(errorMessage);
       console.error('Transcription error:', err);

@@ -30,6 +30,22 @@ export default function FirstTimeArrow() {
     }
   }, []);
 
+  useEffect(() => {
+    // Hide arrow on any click and persist the state
+    const handleClick = () => {
+      const fingerprint = localStorage.getItem('fingerprint');
+      if (fingerprint) {
+        localStorage.setItem(`language_switcher_seen_${fingerprint}`, 'true');
+        setShow(false);
+      }
+    };
+
+    if (show) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [show]);
+
   if (!show) {
     return null;
   }
@@ -52,7 +68,7 @@ export default function FirstTimeArrow() {
         }}
       >
         <path 
-          d="M30 10 L30 35 M30 35 L20 25 M30 35 L40 25" 
+          d="M30 50 L30 25 M30 25 L20 35 M30 25 L40 35" 
           stroke="#591E45" 
           strokeWidth="4" 
           strokeLinecap="round" 
@@ -67,7 +83,7 @@ export default function FirstTimeArrow() {
           }
           50% {
             opacity: 1;
-            transform: translateY(5px);
+            transform: translateY(-5px);
           }
         }
       `}</style>
