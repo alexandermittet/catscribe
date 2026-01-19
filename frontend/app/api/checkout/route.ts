@@ -9,11 +9,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
-// Credit packages
-const CREDIT_PACKAGES = [
-  { id: 'small', credits: 50, price: 500, name: '50 Credits - $5' },
-  { id: 'medium', credits: 120, price: 1000, name: '120 Credits - $10' },
-  { id: 'large', credits: 300, price: 2000, name: '300 Credits - $20' },
+// Minutes packages (prices in cents for Stripe)
+const MINUTES_PACKAGES = [
+  { id: 'small', minutes: 50, price: 500, name: '50 Minutes - $5' },
+  { id: 'medium', minutes: 120, price: 1000, name: '120 Minutes - $10' },
+  { id: 'large', minutes: 300, price: 2000, name: '300 Minutes - $20' },
 ];
 
 export async function POST(request: NextRequest) {
