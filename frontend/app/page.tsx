@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import FileUpload from './components/FileUpload';
 import TranscriptionStatus from './components/TranscriptionStatus';
 import ResultDisplay from './components/ResultDisplay';
@@ -96,7 +97,7 @@ export default function Home() {
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, []);
+  }, [loadUsageData]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -107,7 +108,7 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const loadUsageData = async (fp: string) => {
+  const loadUsageData = useCallback(async (fp: string) => {
     setLoadingUsage(true);
     try {
       const [limits, creditBalance] = await Promise.all([
@@ -124,7 +125,7 @@ export default function Home() {
     } finally {
       setLoadingUsage(false);
     }
-  };
+  }, []);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -195,7 +196,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto relative">
         {/* Tape recorder image - desktop left, mobile left */}
         <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ left: 'calc((100vw - 56rem) / 4 - 100px)' }}>
-          <img
+          <Image
             src="/tape-recorder.png"
             alt="Tape Recorder"
             width={200}
@@ -206,7 +207,7 @@ export default function Home() {
         </div>
         {/* Cat image - desktop right, mobile right */}
         <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ right: 'calc((100vw - 56rem) / 4 - 100px)' }}>
-          <img
+          <Image
             src="/nerd-cat.svg"
             alt="Nerd Cat"
             width={200}
@@ -217,7 +218,7 @@ export default function Home() {
         </div>
         {/* Mobile: both images side by side above content */}
         <div className="lg:hidden flex justify-center items-center gap-4 mb-6">
-          <img
+          <Image
             src="/tape-recorder.png"
             alt="Tape Recorder"
             width={150}
@@ -225,7 +226,7 @@ export default function Home() {
             className="opacity-80"
             style={{ maxWidth: '150px', height: 'auto', objectFit: 'contain' }}
           />
-          <img
+          <Image
             src="/nerd-cat.svg"
             alt="Nerd Cat"
             width={150}
