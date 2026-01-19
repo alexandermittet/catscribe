@@ -138,6 +138,9 @@ export const da = {
     processing: "Transskriberer lyd...",
     completed: "Transskription fuldført!",
     failed: "Transskription mislykkedes",
+    complete: "færdig",
+    elapsedTime: "Forløbet tid",
+    timeRemaining: "Tid tilbage",
   },
 
   // Results

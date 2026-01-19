@@ -18,7 +18,7 @@ from app.models import (
     MinutesBalance,
     UsageLimit
 )
-from app.transcription import transcribe_audio
+from app.transcription import transcribe_audio, estimate_transcription_time
 from app.security import validate_upload
 from app.storage import (
     save_transcription_outputs,
@@ -146,6 +146,21 @@ async def transcribe(
     # Generate job ID
     job_id = generate_job_id()
     
+    # Estimate transcription time
+    estimated_time = estimate_transcription_time(duration, model_size)
+    
+    # Store initial job metadata with estimated time
+    redis_client.store_job_metadata(job_id, {
+        "fingerprint": fingerprint,
+        "status": "processing",
+        "duration": duration,
+        "model": model_size.value,
+        "progress": 0.0,
+        "elapsed_time": 0.0,
+        "estimated_total_time": estimated_time,
+        "time_remaining": estimated_time
+    })
+    
     # Save file temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(safe_filename)[1]) as tmp:
         content = await file.read()
@@ -155,8 +170,18 @@ async def transcribe(
     # Process transcription in background
     async def process_transcription():
         try:
-            # Run transcription
-            result = transcribe_audio(tmp_path, model_size, language)
+            # Define progress callback
+            def update_progress(progress: float, elapsed_time: float, estimated_total_time: float):
+                redis_client.update_job_progress(job_id, progress, elapsed_time, estimated_total_time)
+            
+            # Run transcription with progress tracking
+            result = transcribe_audio(
+                tmp_path, 
+                model_size, 
+                language,
+                audio_duration=duration,
+                progress_callback=update_progress
+            )
             
             # Save outputs
             save_transcription_outputs(
@@ -212,7 +237,7 @@ async def get_transcription(
     fingerprint: str = Query(...),
     x_api_key: Optional[str] = Header(None)
 ):
-    """Get transcription result"""
+    """Get transcription result or progress"""
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     
@@ -225,29 +250,52 @@ async def get_transcription(
     if metadata.get("fingerprint") != fingerprint:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    # Get files
-    files = get_transcription_files(fingerprint, job_id)
-    if not files:
-        raise HTTPException(status_code=404, detail="Transcription files not found")
+    status = metadata.get("status", "queued")
     
-    # Read text file
-    with open(files["txt"], "r", encoding="utf-8") as f:
-        text = f.read()
+    # If still processing or queued, return progress data
+    if status in ["queued", "processing"]:
+        return TranscriptionResult(
+            job_id=job_id,
+            text="",  # Empty text while processing
+            language=metadata.get("language", "unknown"),
+            duration=metadata.get("duration", 0),
+            download_urls={},  # No download URLs yet
+            status=status,
+            progress=metadata.get("progress", 0.0),
+            elapsed_time=metadata.get("elapsed_time", 0.0),
+            estimated_total_time=metadata.get("estimated_total_time"),
+            time_remaining=metadata.get("time_remaining")
+        )
     
-    # Build download URLs (relative paths for now)
-    download_urls = {
-        "txt": f"/download/{job_id}/txt",
-        "srt": f"/download/{job_id}/srt",
-        "vtt": f"/download/{job_id}/vtt"
-    }
+    # If completed, return full result
+    if status == "completed":
+        # Get files
+        files = get_transcription_files(fingerprint, job_id)
+        if not files:
+            raise HTTPException(status_code=404, detail="Transcription files not found")
+        
+        # Read text file
+        with open(files["txt"], "r", encoding="utf-8") as f:
+            text = f.read()
+        
+        # Build download URLs (relative paths for now)
+        download_urls = {
+            "txt": f"/download/{job_id}/txt",
+            "srt": f"/download/{job_id}/srt",
+            "vtt": f"/download/{job_id}/vtt"
+        }
+        
+        return TranscriptionResult(
+            job_id=job_id,
+            text=text,
+            language=metadata.get("language", "unknown"),
+            duration=metadata.get("duration", 0),
+            download_urls=download_urls,
+            status="completed"
+        )
     
-    return TranscriptionResult(
-        job_id=job_id,
-        text=text,
-        language=metadata.get("language", "unknown"),
-        duration=metadata.get("duration", 0),
-        download_urls=download_urls
-    )
+    # If failed
+    raise HTTPException(status_code=500, detail=metadata.get("error", "Transcription failed"))
 
 
 @app.get("/download/{job_id}/{format}")

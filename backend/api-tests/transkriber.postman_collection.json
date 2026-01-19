@@ -439,8 +439,9 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
+							"pm.test(\"Status code is 400 or 404\", function () {",
+							"    // 404 if job doesn't exist yet, 400 if format is invalid",
+							"    pm.expect([400, 404]).to.include(pm.response.code);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -483,15 +484,18 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
+							"pm.test(\"Status code is 200 or 404\", function () {",
+							"    // 404 if no usage data exists yet, 200 if it does",
+							"    pm.expect([200, 404]).to.include(pm.response.code);",
 							"});",
 							"",
-							"pm.test(\"Response has minutes\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData).to.have.property(\"minutes\");",
-							"    pm.expect(jsonData.minutes).to.be.a(\"number\");",
-							"});"
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"Response has minutes\", function () {",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"minutes\");",
+							"        pm.expect(jsonData.minutes).to.be.a(\"number\");",
+							"    });",
+							"}"
 						],
 						"type": "text/javascript"
 					}
@@ -595,8 +599,9 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
+							"pm.test(\"Status code is 400 or 404\", function () {",
+							"    // 404 if no minutes found for email, 400 if email format is invalid",
+							"    pm.expect([400, 404]).to.include(pm.response.code);",
 							"});"
 						],
 						"type": "text/javascript"

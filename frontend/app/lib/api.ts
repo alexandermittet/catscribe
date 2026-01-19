@@ -31,6 +31,12 @@ export interface TranscriptionResult {
     srt: string;
     vtt: string;
   };
+  // Progress fields (only present when status is "processing" or "queued")
+  status?: 'queued' | 'processing' | 'completed' | 'failed';
+  progress?: number; // 0.0 to 1.0
+  elapsed_time?: number; // seconds
+  estimated_total_time?: number; // seconds
+  time_remaining?: number; // seconds
 }
 
 export interface CreditBalance {
@@ -93,7 +99,10 @@ export async function getTranscription(
 ): Promise<TranscriptionResult> {
   const response = await fetch(`/api/transcription/${jobId}?fingerprint=${encodeURIComponent(fingerprint)}`);
   if (!response.ok) {
-    throw new Error('Failed to get transcription');
+    const error = await response.json().catch(() => ({ detail: 'Failed to get transcription' }));
+    const err = new Error(error.detail || 'Failed to get transcription') as any;
+    err.response = { status: response.status, data: error };
+    throw err;
   }
   return response.json();
 }

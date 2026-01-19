@@ -140,6 +140,9 @@ export const en: TranslationKey = {
     processing: "Transcribing audio...",
     completed: "Transcription completed!",
     failed: "Transcription failed",
+    complete: "complete",
+    elapsedTime: "Elapsed time",
+    timeRemaining: "Time remaining",
   },
 
   // Results

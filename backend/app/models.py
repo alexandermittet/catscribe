@@ -28,6 +28,12 @@ class TranscriptionResult(BaseModel):
     language: str
     duration: float
     download_urls: dict[str, str]  # format -> url
+    # Progress fields (only present when status is "processing")
+    status: Optional[Literal["queued", "processing", "completed", "failed"]] = None
+    progress: Optional[float] = None  # 0.0 to 1.0
+    elapsed_time: Optional[float] = None  # seconds
+    estimated_total_time: Optional[float] = None  # seconds
+    time_remaining: Optional[float] = None  # seconds
 
 
 class MinutesBalance(BaseModel):

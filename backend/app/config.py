@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from typing import Optional, List
 
 
@@ -37,10 +38,12 @@ class Settings(BaseSettings):
     model_cache_dir: str = "/data/whisper_models"
     ttl_days: int = 7
     
-    class Config:
-        env_file = ".env"
-        env_prefix = ""
-        case_sensitive = False
+    model_config = ConfigDict(
+        env_file=".env",
+        env_prefix="",
+        case_sensitive=False,
+        protected_namespaces=("settings_",)  # Only protect 'settings_' namespace, not 'model_'
+    )
 
 
 # Create global settings instance

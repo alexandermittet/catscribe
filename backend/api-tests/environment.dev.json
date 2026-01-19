@@ -28,7 +28,7 @@
 		},
 		{
 			"key": "test_audio_file",
-			"value": "",
+			"value": "/Users/alexandermittet/LOCAL documents/transkriber-app/alex-safe-space/test cat transcribe.m4a",
 			"type": "default",
 			"enabled": true,
 			"description": "Path to test audio file (MP3, WAV, etc.)"

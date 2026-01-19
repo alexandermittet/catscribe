@@ -237,6 +237,35 @@ class RedisClient:
             return json.loads(data)
         return None
     
+    def update_job_progress(self, job_id: str, progress: float, elapsed_time: float, estimated_total_time: float):
+        """Update job progress metadata"""
+        if not self.client:
+            return
+        
+        metadata = self.get_job_metadata(job_id)
+        if metadata:
+            metadata["status"] = "processing"
+            metadata["progress"] = progress
+            metadata["elapsed_time"] = elapsed_time
+            metadata["estimated_total_time"] = estimated_total_time
+            metadata["time_remaining"] = max(0, estimated_total_time - elapsed_time)
+            
+            # Get TTL to preserve it
+            ttl = self.client.ttl(f"job:{job_id}")
+            if ttl > 0:
+                self.client.setex(
+                    f"job:{job_id}",
+                    ttl,
+                    json.dumps(metadata)
+                )
+            else:
+                # Default TTL if not set
+                self.client.setex(
+                    f"job:{job_id}",
+                    604800,  # 7 days
+                    json.dumps(metadata)
+                )
+    
     def set_rate_limit(self, key: str, limit: int, window: int):
         """Set rate limit counter"""
         if not self.client:
