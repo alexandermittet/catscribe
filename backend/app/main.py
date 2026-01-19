@@ -1,5 +1,6 @@
 import os
 import tempfile
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Header, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,11 +11,16 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from typing import Optional
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from app.models import (
     TranscriptionRequest,
     TranscriptionResponse,
     TranscriptionResult,
     ModelSize,
+    ALLOWED_MODELS,
     MinutesBalance,
     UsageLimit
 )
@@ -86,11 +92,6 @@ async def transcribe(
     x_api_key: Optional[str] = Header(None)
 ):
     """Transcribe audio file"""
-    # #region agent log
-    import json
-    with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
-        f.write(json.dumps({'location':'main.py:79','message':'transcribe endpoint entry','data':{'model':model,'language':language,'filename':file.filename,'fingerprint':fingerprint[:10]},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'A,C,D'})+'\n')
-    # #endregion
     # Rate limiting - check manually (skip for now in dev, will add back later)
     # rate_limit_key = get_remote_address(request) if request else "unknown"
     # if not redis_client.set_rate_limit(rate_limit_key, 10, 3600):
@@ -112,23 +113,18 @@ async def transcribe(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"File validation failed: {str(e)}")
     
-    # #region agent log
-    with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
-        f.write(json.dumps({'location':'main.py:111','message':'before ModelSize parse','data':{'model_raw':model,'model_lower':model.lower()},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'A,C,D'})+'\n')
-    # #endregion
     # Parse model size
     try:
         model_size = ModelSize(model.lower())
-        # #region agent log
-        with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
-            f.write(json.dumps({'location':'main.py:117','message':'ModelSize parsed successfully','data':{'model_size_value':model_size.value},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'A,C'})+'\\n')
-        # #endregion
     except ValueError as ve:
-        # #region agent log
-        with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
-            f.write(json.dumps({'location':'main.py:123','message':'ModelSize ValueError caught','data':{'model':model,'error':str(ve)},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'C'})+'\\n')
-        # #endregion
         raise HTTPException(status_code=400, detail=f"Invalid model size: {model}")
+    
+    # Check if model is allowed (memory constraints for 2GB machine)
+    if model_size not in ALLOWED_MODELS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Model '{model_size.value}' is currently unavailable due to server memory constraints. Please use tiny, base, or small models."
+        )
     
     # Check free tier limits
     if not is_paid:
@@ -143,7 +139,8 @@ async def transcribe(
                     status_code=403,
                     detail=f"Insufficient free minutes. Required: {duration_minutes:.1f}, Available: {remaining_free_minutes:.1f}"
                 )
-        elif model_size in [ModelSize.SMALL, ModelSize.MEDIUM, ModelSize.LARGE]:
+        elif model_size == ModelSize.SMALL:
+            # Only small model allowed in free tier premium minutes (medium/large disabled due to RAM)
             remaining_premium_minutes = 5.0 - premium_minutes_used
             if duration_minutes > remaining_premium_minutes:
                 raise HTTPException(
@@ -185,13 +182,29 @@ async def transcribe(
         tmp_path = tmp.name
     
     # Process transcription in background
-    async def process_transcription():
+    def process_transcription():
         try:
+            logger.info(f"Starting transcription for job {job_id}, model: {model_size.value}, duration: {duration}s, language: {language}")
+            
+            # Update status to processing
+            redis_client.store_job_metadata(job_id, {
+                "fingerprint": fingerprint,
+                "status": "processing",
+                "duration": duration,
+                "model": model_size.value,
+                "progress": 0.0,
+                "elapsed_time": 0.0,
+                "estimated_total_time": estimated_time,
+                "time_remaining": estimated_time
+            })
+            
             # Define progress callback
             def update_progress(progress: float, elapsed_time: float, estimated_total_time: float):
+                logger.info(f"Job {job_id} progress: {progress:.1%}, elapsed: {elapsed_time:.1f}s, estimated: {estimated_total_time:.1f}s")
                 redis_client.update_job_progress(job_id, progress, elapsed_time, estimated_total_time)
             
             # Run transcription with progress tracking
+            logger.info(f"Calling transcribe_audio for job {job_id}")
             result = transcribe_audio(
                 tmp_path, 
                 model_size, 
@@ -199,8 +212,10 @@ async def transcribe(
                 audio_duration=duration,
                 progress_callback=update_progress
             )
+            logger.info(f"Transcription completed for job {job_id}, language detected: {result.get('language')}, text length: {len(result.get('text', ''))}")
             
             # Save outputs
+            logger.info(f"Saving transcription outputs for job {job_id}")
             save_transcription_outputs(
                 fingerprint=fingerprint,
                 job_id=job_id,
@@ -210,6 +225,7 @@ async def transcribe(
             )
             
             # Update usage
+            logger.info(f"Updating usage for fingerprint {fingerprint}")
             redis_client.increment_usage(fingerprint, model_size.value, is_paid, duration_seconds=duration)
             
             # Deduct minutes if paid (subtract actual minutes transcribed)
@@ -218,6 +234,7 @@ async def transcribe(
                 redis_client.deduct_minutes(fingerprint, duration_minutes)
             
             # Store job metadata
+            logger.info(f"Marking job {job_id} as completed")
             redis_client.store_job_metadata(job_id, {
                 "fingerprint": fingerprint,
                 "status": "completed",
@@ -227,6 +244,7 @@ async def transcribe(
             })
             
         except Exception as e:
+            logger.error(f"Transcription failed for job {job_id}: {str(e)}", exc_info=True)
             redis_client.store_job_metadata(job_id, {
                 "fingerprint": fingerprint,
                 "status": "failed",
@@ -236,8 +254,9 @@ async def transcribe(
             # Delete audio file immediately
             try:
                 os.unlink(tmp_path)
-            except Exception:
-                pass
+                logger.info(f"Deleted temporary file {tmp_path}")
+            except Exception as e:
+                logger.warning(f"Failed to delete temporary file {tmp_path}: {str(e)}")
     
     background_tasks.add_task(process_transcription)
     

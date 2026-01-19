@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { FontProvider } from './contexts/FontContext'
 
 export const metadata: Metadata = {
   title: 'catscribe - Lydtransskriptionstjeneste',
@@ -16,7 +17,9 @@ export default function RootLayout({
     <html lang="da">
       <body>
         <LanguageProvider>
-          {children}
+          <FontProvider>
+            {children}
+          </FontProvider>
         </LanguageProvider>
       </body>
     </html>

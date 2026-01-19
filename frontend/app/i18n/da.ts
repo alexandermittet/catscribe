@@ -91,11 +91,11 @@ export const da = {
 
   // Models
   models: {
-    tiny: "😴 Doven kat (Hurtigst, lavere kvalitet)",
-    base: "🐱 Hverdags kat (Balanceret)",
-    small: "📚 Studerende kat (Bedre kvalitet, langsommere)",
-    medium: "🎯 Perfektionistisk kat (Høj kvalitet, lidt langsommere)",
-    large: "💪 Hyperpolyglot gigachad kat (Bedste kvalitet, meget langsommere)",
+    tiny: "😴 Doven kat (~12 min ventetid for 1 time interview, lavere kvalitet)",
+    base: "🐱 Hverdags kat (~15 min ventetid for 1 time interview, Balanceret)",
+    small: "📚 Studerende kat (~20 min ventetid for 1 time interview, Bedre kvalitet)",
+    medium: "🎯 Perfektionistisk kat (~40 min ventetid for 1 time interview, Høj kvalitet)",
+    large: "💪 Hyperpolyglot gigachad kat (~2 timer ventetid for 1 time interview, Bedste kvalitet)",
     comingSoon: "(kommer snart™️..)",
     limitReached: "(Grænse nået)",
   },
@@ -190,6 +190,14 @@ export const da = {
   languageSwitcher: {
     da: "🇩🇰 DA",
     en: "🇬🇧 EN",
+  },
+
+  // Font toggle
+  fontToggle: {
+    label: "Barbie font",
+    toggle: "Skift font",
+    enable: "Aktiver Barbie font",
+    disable: "Deaktiver Barbie font",
   },
 
   // Errors

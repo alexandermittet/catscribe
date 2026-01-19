@@ -7,8 +7,11 @@ class ModelSize(str, Enum):
     TINY = "tiny"
     BASE = "base"
     SMALL = "small"
-    MEDIUM = "medium"
-    LARGE = "large"
+    MEDIUM = "medium"  # Disabled: too much RAM for 2GB machine
+    LARGE = "large"  # Disabled: too much RAM for 2GB machine
+
+# Allowed models for production (2GB RAM limit)
+ALLOWED_MODELS = [ModelSize.TINY, ModelSize.BASE, ModelSize.SMALL]
 
 
 class TranscriptionRequest(BaseModel):

@@ -34,12 +34,26 @@ export default function TranscriptionStatus({
   const [timeRemaining, setTimeRemaining] = useState<number | undefined>();
 
   useEffect(() => {
-    const pollInterval = setInterval(async () => {
+    let pollInterval: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
+    const poll = async () => {
+      if (!isMounted) return;
+      
       try {
         const result = await getTranscription(jobId, fingerprint);
         
+        if (!isMounted) return;
+        
         // Update status
         const currentStatus = result.status || 'processing';
+        console.log(`[TranscriptionStatus] Job ${jobId} status: ${currentStatus}`, {
+          progress: result.progress,
+          elapsed_time: result.elapsed_time,
+          estimated_total_time: result.estimated_total_time,
+          time_remaining: result.time_remaining
+        });
+        
         setStatus(currentStatus);
         
         // Update progress data if available
@@ -58,28 +72,54 @@ export default function TranscriptionStatus({
         
         // If completed, call onComplete
         if (currentStatus === 'completed') {
+          console.log(`[TranscriptionStatus] Job ${jobId} completed, calling onComplete`);
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
           onComplete(result);
-          clearInterval(pollInterval);
         } else if (currentStatus === 'failed') {
+          console.error(`[TranscriptionStatus] Job ${jobId} failed`);
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
           onError('Transcription failed');
-          clearInterval(pollInterval);
         }
       } catch (error: any) {
+        if (!isMounted) return;
+        
+        console.error(`[TranscriptionStatus] Error polling job ${jobId}:`, error);
+        
         // Check if it's a 404 (job not found) or other error
         if (error.message?.includes('404') || error.response?.status === 404) {
           // Job not found - might be queued, keep polling
+          console.log(`[TranscriptionStatus] Job ${jobId} not found (404), keeping status as queued`);
           setStatus('queued');
         } else {
           // Error
+          console.error(`[TranscriptionStatus] Job ${jobId} error, stopping polling`);
           setStatus('failed');
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
           onError(error.response?.data?.detail || error.message || 'Transcription failed');
-          clearInterval(pollInterval);
         }
       }
-    }, 1000); // Poll every 1 second for smoother progress updates
+    };
 
-    return () => clearInterval(pollInterval);
-  }, [jobId, fingerprint, onComplete, onError]);
+    // Poll immediately, then every 2 seconds
+    poll();
+    pollInterval = setInterval(poll, 2000);
+
+    return () => {
+      isMounted = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, [jobId, fingerprint]); // Removed onComplete and onError from dependencies to prevent unnecessary re-renders
 
   const progressPercent = Math.round(progress * 100);
 

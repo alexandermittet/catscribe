@@ -93,11 +93,11 @@ export const en: TranslationKey = {
 
   // Models
   models: {
-    tiny: "😴 Lazy Cat (Fastest, Lower Quality)",
-    base: "🐱 Everyday Cat (Balanced)",
-    small: "📚 Studious Cat (Better Quality, Slower)",
-    medium: "🎯 Perfectionistic Cat (High Quality, A bit Slower)",
-    large: "💪 Hyperpolyglot Gigachad Cat (Best Quality, A lot slower)",
+    tiny: "😴 Lazy Cat (~12 min wait time for 1 hr of interview, Lower Quality)",
+    base: "🐱 Everyday Cat (~15 min wait time for 1 hr of interview, Balanced)",
+    small: "📚 Studious Cat (~20 min wait time for 1 hr of interview, Better Quality)",
+    medium: "🎯 Perfectionistic Cat (~40 min wait time for 1 hr of interview, High Quality)",
+    large: "💪 Hyperpolyglot Gigachad Cat (~2 hrs wait time for 1 hr of interview, Best Quality)",
     comingSoon: "(coming soon™️..)",
     limitReached: "(Limit reached)",
   },
@@ -192,6 +192,14 @@ export const en: TranslationKey = {
   languageSwitcher: {
     da: "🇩🇰 DA",
     en: "🇬🇧 EN",
+  },
+
+  // Font toggle
+  fontToggle: {
+    label: "Barbie font",
+    toggle: "Toggle font",
+    enable: "Enable Barbie font",
+    disable: "Disable Barbie font",
   },
 
   // Errors

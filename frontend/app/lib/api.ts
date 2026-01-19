@@ -61,19 +61,11 @@ export async function transcribeAudio(
   language: string,
   model: string
 ): Promise<TranscriptionResponse> {
-  // #region agent log
-  fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:58',message:'transcribeAudio entry',data:{fileName:file.name,language,model,fingerprint},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
-  // #endregion
-
   const formData = new FormData();
   formData.append('file', file);
   formData.append('language', language);
   formData.append('model', model);
   formData.append('fingerprint', fingerprint);
-
-  // #region agent log
-  fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:71',message:'FormData created',data:{model:formData.get('model'),language:formData.get('language')},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
-  // #endregion
 
   // Use Next.js API route which proxies to backend with API key
   const response = await fetch('/api/transcribe', {
@@ -81,21 +73,11 @@ export async function transcribeAudio(
     body: formData,
   });
 
-  // #region agent log
-  fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:79',message:'fetch response received',data:{ok:response.ok,status:response.status,statusText:response.statusText,contentType:response.headers.get('content-type')},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E'})}).catch(()=>{});
-  // #endregion
-
   if (!response.ok) {
     let errorData;
     try {
       errorData = await response.json();
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:87',message:'error response parsed',data:{errorData},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C,E'})}).catch(()=>{});
-      // #endregion
     } catch {
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:92',message:'error response JSON parse failed',data:{status:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,E'})}).catch(()=>{});
-      // #endregion
       errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
     }
     

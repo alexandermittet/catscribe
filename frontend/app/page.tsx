@@ -9,6 +9,7 @@ import CheckoutModal from './components/CheckoutModal';
 import ClaimCreditsModal from './components/ClaimCreditsModal';
 import ClaimMinutesModal from './components/ClaimMinutesModal';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import FontToggle from './components/FontToggle';
 import FirstTimeArrow from './components/FirstTimeArrow';
 import { getFingerprint } from './lib/fingerprint';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
@@ -90,7 +91,7 @@ const getModels = (t: (key: string) => string) => [
   { value: 'tiny', label: t('models.tiny') },
   { value: 'base', label: t('models.base') },
   { value: 'small', label: t('models.small') },
-  { value: 'medium', label: t('models.medium') },
+  { value: 'medium', label: t('models.medium'), comingSoon: true },
   { value: 'large', label: t('models.large'), comingSoon: true },
 ];
 
@@ -196,46 +197,36 @@ export default function Home() {
       return;
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:193',message:'handleTranscribe called',data:{model,language,filename:selectedFile.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
-    // #endregion
-
     setIsTranscribing(true);
     setError(null);
     setResult(null);
 
     try {
       const response = await transcribeAudio(selectedFile, fingerprint, language, model);
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:205',message:'transcribeAudio success',data:{job_id:response.job_id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{});
-      // #endregion
       setJobId(response.job_id);
     } catch (err: any) {
       setIsTranscribing(false);
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:211',message:'transcribeAudio error',data:{errorMessage:err.message,errorStack:err.stack,errorType:err.constructor.name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,E'})}).catch(()=>{});
-      // #endregion
       const errorMessage = err.message || err.response?.data?.detail || err.response?.data?.message || t('errors.transcriptionFailed');
       setError(errorMessage);
       console.error('Transcription error:', err);
     }
   };
 
-  const handleTranscriptionComplete = (transcriptionResult: TranscriptionResult) => {
+  const handleTranscriptionComplete = useCallback((transcriptionResult: TranscriptionResult) => {
     setIsTranscribing(false);
     setResult(transcriptionResult);
     // Reload usage data
     if (fingerprint) {
       loadUsageData(fingerprint);
     }
-  };
+  }, [fingerprint, loadUsageData]);
 
-  const handleTranscriptionError = (errorMessage: string) => {
+  const handleTranscriptionError = useCallback((errorMessage: string) => {
     setIsTranscribing(false);
     setError(errorMessage);
-  };
+  }, []);
 
-  const isModelComingSoon = (modelValue: string) => modelValue === 'large';
+  const isModelComingSoon = (modelValue: string) => modelValue === 'large' || modelValue === 'medium';
   const canUseModel = (modelValue: string): boolean => {
     if (isModelComingSoon(modelValue)) return false; // disabled for now (coming soon)
     // Use fallback defaults if usageLimits is null
@@ -245,7 +236,8 @@ export default function Home() {
     if (modelValue === 'tiny' || modelValue === 'base') {
       return limits.remaining_tiny_base > 0;
     }
-    if (modelValue === 'small' || modelValue === 'medium') {
+    if (modelValue === 'small') {
+      // Only small model uses premium free minutes (medium/large disabled due to server RAM)
       return limits.remaining_small > 0;
     }
     return false;
@@ -254,6 +246,7 @@ export default function Home() {
   return (
     <>
       <LanguageSwitcher />
+      <FontToggle />
       <FirstTimeArrow />
       {/* Mouse-Cursor-following spotlight - behind content but above background */}
       <div
@@ -266,7 +259,7 @@ export default function Home() {
       <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ zIndex: 10 }}>
         <div className="max-w-4xl mx-auto relative">
         {/* Tape recorder image - desktop left, mobile left */}
-        <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ left: 'calc((100vw - 56rem) / 4 - 100px)' }}>
+        <div className="hidden lg:block fixed top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ left: 'calc((100vw - 56rem) / 4 - 100px)' }}>
           <Image
             src="/tape-recorder.svg"
             alt="Tape Recorder"
@@ -276,7 +269,7 @@ export default function Home() {
           />
         </div>
         {/* Cat image - desktop right, mobile right */}
-        <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ right: 'calc((100vw - 56rem) / 4 - 100px)' }}>
+        <div className="hidden lg:block fixed top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ right: 'calc((100vw - 56rem) / 4 - 100px)' }}>
           <Image
             src="/nerd-cat.svg"
             alt="Nerd Cat"

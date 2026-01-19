@@ -2,19 +2,20 @@
 
 ## Backend (Fly.dev) ✅ DEPLOYED
 
-- **URL**: https://transkriber-app-backend.fly.dev
+- **URL**: <https://transkriber-app-backend.fly.dev>
 - **Region**: Stockholm (ARN)
 - **Redis**: Connected (solitary-wind-5060)
 - **Volume**: transkriber_data (10GB) in ARN
 
-### Secrets Set:
+### Secrets Set
+
 - `REDIS_URL`: redis://default:a62e69067c2945f4a468b76d5af4533e@fly-solitary-wind-5060.upstash.io:6379
 - `API_KEY`: c025fe9e77d7ec0cab6906ea37f0bf629ed2ae569f8c03e46c3e228d13990ee2
-- `ALLOWED_ORIGINS`: http://localhost:3000,https://frontend-taupe-six-42.vercel.app
+- `ALLOWED_ORIGINS`: <http://localhost:3000,https://frontend-taupe-six-42.vercel.app>
 
 ## Frontend (Vercel) ✅ DEPLOYED
 
-- **URL**: https://frontend-taupe-six-42.vercel.app
+- **URL**: <https://frontend-taupe-six-42.vercel.app>
 - **Status**: Production deployment active
 
 ### ⚠️ CRITICAL: Root Directory Configuration
@@ -23,7 +24,7 @@
 
 **How to set Root Directory (REQUIRED for Git-based deployments):**
 
-1. Go to your Vercel project: https://vercel.com/dashboard
+1. Go to your Vercel project: <https://vercel.com/dashboard>
 2. Click on your project
 3. Go to **Settings** → **General**
 4. Scroll to **Root Directory**
@@ -35,7 +36,8 @@
 
 **Note:** This setting applies to all branches/environments. Once set, all deployments will use `frontend/` as the root.
 
-### Environment Variables Set:
+### Environment Variables Set
+
 - `BACKEND_URL` = `https://transkriber-app-backend.fly.dev`
 - `API_KEY` = `c025fe9e77d7ec0cab6906ea37f0bf629ed2ae569f8c03e46c3e228d13990ee2`
 - `FRONTEND_URL` = `https://frontend-taupe-six-42.vercel.app`
@@ -44,7 +46,8 @@
 - `STRIPE_SECRET_KEY` = (set in Vercel, encrypted)
 - `STRIPE_WEBHOOK_SECRET` = (set in Vercel, encrypted)
 
-### Stripe Webhook Configuration:
+### Stripe Webhook Configuration
+
 - **Endpoint**: `https://frontend-taupe-six-42.vercel.app/api/webhook`
 - **Event**: `checkout.session.completed`
 - **API Version**: `2023-10-16` (SDK), `2025-12-15.clover` (Webhook)
@@ -52,6 +55,7 @@
 ## Testing Deployment
 
 1. **Backend Health Check:**
+
    ```bash
    curl https://transkriber-app-backend.fly.dev/health
    ```
@@ -63,6 +67,7 @@
 ## Troubleshooting
 
 ### Backend Issues
+
 - Check logs: `fly logs -a transkriber-app-backend`
 - SSH into machine: `fly ssh console -a transkriber-app-backend`
 - Check secrets: `fly secrets list -a transkriber-app-backend`
@@ -70,11 +75,13 @@
 ### Frontend Issues
 
 **Build Error: "Couldn't find any `pages` or `app` directory"**
+
 - **Root cause**: Root Directory is not set to `frontend` in Vercel project settings
 - **Fix**: Go to Settings → General → Root Directory → Set to `frontend` → Save
 - This is the #1 cause of build failures in monorepo setups
 
 **Other Frontend Issues:**
+
 - Check Vercel deployment logs in dashboard
 - Verify environment variables are set correctly
 - Check browser console for API errors

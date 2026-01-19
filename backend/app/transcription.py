@@ -2,9 +2,12 @@ from faster_whisper import WhisperModel
 import os
 import tempfile
 import time
+import logging
 from typing import Optional, Callable
 from app.models import ModelSize
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 # Model cache in memory
@@ -23,7 +26,9 @@ def load_model(size: ModelSize) -> WhisperModel:
     size_str = size.value
     
     if size_str not in model_cache:
+        logger.info(f"Loading model {size_str} (not in cache)")
         cache_dir = get_model_cache_dir()
+        logger.info(f"Model cache directory: {cache_dir}")
         model_cache[size_str] = WhisperModel(
             size_str,
             download_root=cache_dir,
@@ -31,6 +36,9 @@ def load_model(size: ModelSize) -> WhisperModel:
             compute_type="int8",
             cpu_threads=2  # Use both CPUs on Fly.io free tier (2 shared CPUs)
         )
+        logger.info(f"Model {size_str} loaded successfully")
+    else:
+        logger.info(f"Using cached model {size_str}")
     
     return model_cache[size_str]
 
@@ -55,24 +63,33 @@ def transcribe_audio(
     Returns:
         dict with keys: text, language, segments
     """
+    logger.info(f"Loading model {model_size.value}")
     model = load_model(model_size)
     
     # Prepare language parameter
     lang = None if language == "auto" or language is None else language
+    logger.info(f"Starting transcription: audio_path={audio_path}, language={lang}, duration={audio_duration}s")
     
     # Run transcription - faster-whisper returns (segments, info) tuple
+    logger.info(f"Calling model.transcribe()...")
     segments, info = model.transcribe(
         audio_path,
         language=lang
     )
+    logger.info(f"Transcription started, detected language: {info.language if hasattr(info, 'language') else 'unknown'}")
     
     start_time = time.time()
     segments_list = []
     last_progress_value = 0.0
     last_update_time = start_time
+    segment_count = 0
     
     # Iterate through segments to track progress
+    logger.info("Iterating through transcription segments...")
     for segment in segments:
+        segment_count += 1
+        if segment_count % 10 == 0:
+            logger.info(f"Processed {segment_count} segments, current time: {segment.end:.1f}s")
         segments_list.append(segment)
         
         # Update progress if callback provided and audio duration known
@@ -82,8 +99,8 @@ def transcribe_audio(
             elapsed_time = time.time() - start_time
             current_time = time.time()
             
-            # Only update progress every 1% or every 2 seconds to avoid too many Redis writes
-            if progress - last_progress_value >= 0.01 or current_time - last_update_time >= 2.0:
+            # Only update progress every 2 seconds to avoid too many Redis writes
+            if current_time - last_update_time >= 2.0:
                 # Estimate total time based on current progress
                 if progress > 0.01:  # Avoid division by zero
                     estimated_total_time = elapsed_time / progress
@@ -94,8 +111,12 @@ def transcribe_audio(
                 last_progress_value = progress
                 last_update_time = current_time
     
+    elapsed_total = time.time() - start_time
+    logger.info(f"Finished processing {len(segments_list)} segments in {elapsed_total:.1f}s")
+    
     # Reconstruct full text from segments
     text = " ".join([segment.text for segment in segments_list]).strip()
+    logger.info(f"Reconstructed text length: {len(text)} characters")
     
     # Convert segments to dict format for compatibility
     segments_dict = [
@@ -107,6 +128,7 @@ def transcribe_audio(
         for segment in segments_list
     ]
     
+    logger.info(f"Transcription complete: language={info.language}, segments={len(segments_dict)}")
     return {
         "text": text,
         "language": info.language,
