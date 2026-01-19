@@ -45,6 +45,18 @@ const MODELS = [
   { value: 'large', label: 'Large (Best Quality)' },
 ];
 
+// Default fallback values
+const defaultUsageLimits: UsageLimit = {
+  remaining_tiny_base: 45,
+  remaining_small: 5,
+  is_paid: false
+};
+
+const defaultCredits: CreditBalance = {
+  credits: 0,
+  email: undefined
+};
+
 export default function Home() {
   const [fingerprint, setFingerprint] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -61,17 +73,24 @@ export default function Home() {
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Default fallback values
-  const defaultUsageLimits: UsageLimit = {
-    remaining_tiny_base: 45,
-    remaining_small: 5,
-    is_paid: false
-  };
-
-  const defaultCredits: CreditBalance = {
-    credits: 0,
-    email: undefined
-  };
+  const loadUsageData = useCallback(async (fp: string) => {
+    setLoadingUsage(true);
+    try {
+      const [limits, creditBalance] = await Promise.all([
+        getUsageLimits(fp),
+        getCredits(fp),
+      ]);
+      setUsageLimits(limits);
+      setCredits(creditBalance);
+    } catch (err) {
+      console.error('Failed to load usage data:', err);
+      // Set default fallback values on error
+      setUsageLimits(defaultUsageLimits);
+      setCredits(defaultCredits);
+    } finally {
+      setLoadingUsage(false);
+    }
+  }, [defaultUsageLimits, defaultCredits]);
 
   useEffect(() => {
     // Initialize fingerprint
@@ -106,25 +125,6 @@ export default function Home() {
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  const loadUsageData = useCallback(async (fp: string) => {
-    setLoadingUsage(true);
-    try {
-      const [limits, creditBalance] = await Promise.all([
-        getUsageLimits(fp),
-        getCredits(fp),
-      ]);
-      setUsageLimits(limits);
-      setCredits(creditBalance);
-    } catch (err) {
-      console.error('Failed to load usage data:', err);
-      // Set default fallback values on error
-      setUsageLimits(defaultUsageLimits);
-      setCredits(defaultCredits);
-    } finally {
-      setLoadingUsage(false);
-    }
   }, []);
 
   const handleFileSelect = (file: File) => {
