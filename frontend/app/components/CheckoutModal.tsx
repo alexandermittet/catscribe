@@ -1,18 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { PRICING_CONFIG } from '../config/pricing';
 
 interface CheckoutModalProps {
   fingerprint: string;
   onClose: () => void;
   onSuccess: () => void;
 }
-
-const MINUTES_PACKAGES = [
-  { id: 'small', minutes: 50, price: 5, name: '50 Minutes' },
-  { id: 'medium', minutes: 120, price: 10, name: '120 Minutes' },
-  { id: 'large', minutes: 300, price: 20, name: '300 Minutes' },
-];
 
 export default function CheckoutModal({ fingerprint, onClose, onSuccess }: CheckoutModalProps) {
   const [email, setEmail] = useState('');
@@ -90,7 +85,7 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
               Minutes Package
             </label>
             <div className="space-y-2">
-              {MINUTES_PACKAGES.map((pkg) => (
+              {PRICING_CONFIG.packages.map((pkg) => (
                 <label
                   key={pkg.id}
                   className={`block p-3 border rounded-md cursor-pointer transition-colors ${
@@ -107,8 +102,8 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
                     onChange={(e) => setSelectedPackage(e.target.value)}
                     className="mr-2"
                   />
-                  <span className="font-medium">{pkg.name}</span>
-                  <span className="ml-2 text-gray-600">- ${pkg.price}</span>
+                  <span className="font-medium">{pkg.minutes} Minutes</span>
+                  <span className="ml-2 text-gray-600">- {pkg.price} {PRICING_CONFIG.currencyDisplay}</span>
                 </label>
               ))}
             </div>

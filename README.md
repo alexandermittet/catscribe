@@ -70,7 +70,7 @@ graph TB
 - Transcription outputs stored for 7 days (.txt, .srt, .vtt)
 - Device fingerprinting for usage tracking
 - Stripe Checkout integration for credit purchases
-- Admin pricing: Special $1 pricing for <admin@admitted.dk>
+- Admin pricing: Special 2 kr. pricing for <admin@admitted.dk>
 
 ## Local Development
 
@@ -191,13 +191,28 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 | Medium| 4 credits       |
 | Large | 8 credits       |
 
-Packages:
+### Pricing config
 
-- 50 credits - $5
-- 120 credits - $10
-- 300 credits - $20
+Minute package prices, currency, and admin pricing are defined in **`frontend/app/config/pricing.ts`**. Edit that file to change amounts or add/remove packages.
 
-**Admin Pricing**: Email `admin@admitted.dk` receives $1 pricing for any package.
+| Field | Description |
+|-------|-------------|
+| `currency` | Stripe currency code (`"dkk"`, `"eur"`, `"usd"`). Amounts are sent to Stripe in the smallest unit (øre for DKK, cents for EUR/USD), so each `price` is multiplied by 100. |
+| `adminPrice` | Price in the main unit (e.g. DKK) for the admin email. |
+| `adminEmail` | Email that receives the admin price. |
+| `currencyDisplay` | Suffix shown in the UI (e.g. `"kr."` for `35 kr.`). |
+| `packages` | Array of `{ id, minutes, price }`. `id` must stay in sync with the checkout API; `price` is in the main unit (e.g. DKK). |
+
+Example: to add a 90‑minute package at 15 kr., add `{ id: "xlarge", minutes: 90, price: 15 }` to `packages` and use `id: "xlarge"` when calling `/api/checkout`.
+
+Default packages: 30 min / 5 kr., 60 min / 10 kr., 120 min / 20 kr. Admin: `admin@admitted.dk` at 2 kr.
+
+#### Your cost on Fly.io
+
+Paid users are charged 1 minute per 1 minute of audio, regardless of model. Your Fly bill depends on **compute time** (how long the transcription runs).
+
+- **Fly.io**: 2 shared CPUs + 2 GB RAM ≈ $0.0044/s (~16 DKK/h). Whisper **tiny/base/small/medium** fit in 2 GB and run at roughly 5–40× faster than realtime on 2 CPUs, so 60 min of audio is typically a few minutes of compute—well under 10 DKK.
+- **Whisper large** needs ~3–6+ GB RAM. On a 2 GB machine it will not load or will OOM/swap heavily, so in practice **large is not viable** on the current Fly sizing. If you later move to 8 GB+ and support large, 60 min of large can approach 1–2× realtime (60–120 min compute) and could cost you more than 10 DKK; consider then either higher prices or deducting more minutes per audio-minute for the large model.
 
 ## License
 

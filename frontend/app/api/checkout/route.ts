@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { PRICING_CONFIG } from '../../config/pricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,13 +9,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 });
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
-
-// Minutes packages (prices in cents for Stripe)
-const MINUTES_PACKAGES = [
-  { id: 'small', minutes: 50, price: 500, name: '50 Minutes - $5' },
-  { id: 'medium', minutes: 120, price: 1000, name: '120 Minutes - $10' },
-  { id: 'large', minutes: 300, price: 2000, name: '300 Minutes - $20' },
-];
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const package_ = MINUTES_PACKAGES.find(p => p.id === packageId);
+    const package_ = PRICING_CONFIG.packages.find(p => p.id === packageId);
     if (!package_) {
       return NextResponse.json(
         { detail: 'Invalid package' },
@@ -36,10 +30,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Special pricing for admin email
-    const isAdminEmail = email.toLowerCase() === 'admin@admitted.dk';
-    const finalPrice = isAdminEmail ? 100 : package_.price; // $1.00 for admin, regular price otherwise
-    const productName = isAdminEmail ? `${package_.name} (Admin Price)` : package_.name;
+    const isAdminEmail = email.toLowerCase() === PRICING_CONFIG.adminEmail;
+    const priceInSmallestUnit = (amount: number) => amount * 100; // øre for DKK, cents for EUR/USD
+    const finalPrice = isAdminEmail ? priceInSmallestUnit(PRICING_CONFIG.adminPrice) : priceInSmallestUnit(package_.price);
+    const baseName = `${package_.minutes} Minutes - ${package_.price} ${PRICING_CONFIG.currencyDisplay}`;
+    const productName = isAdminEmail ? `${baseName} (Admin Price)` : baseName;
 
     // Use hardcoded production URL - most reliable approach
     const frontendUrl = 'https://frontend-taupe-six-42.vercel.app';
@@ -53,7 +48,7 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: PRICING_CONFIG.currency,
             product_data: {
               name: productName,
               description: `${package_.minutes} transcription minutes`,

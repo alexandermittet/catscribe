@@ -88,7 +88,7 @@ const MODELS = [
   { value: 'base', label: '🐱 Everyday Cat (Balanced)' },
   { value: 'small', label: '📚 Studious Cat (Better Quality, Slower)' },
   { value: 'medium', label: '🎯 Perfectionistic Cat (High Quality, A bit Slower)' },
-  { value: 'large', label: '💪 Hyperpolyglot Gigachad Cat (Best Quality, A lot slower)' },
+  { value: 'large', label: '💪 Hyperpolyglot Gigachad Cat (Best Quality, A lot slower)', comingSoon: true },
 ];
 
 // Default fallback values
@@ -165,6 +165,10 @@ export default function Home() {
   }, [loadUsageData]);
 
   useEffect(() => {
+    if (model === 'large') setModel('base');
+  }, [model]);
+
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
@@ -214,7 +218,9 @@ export default function Home() {
     setError(errorMessage);
   };
 
+  const isModelComingSoon = (modelValue: string) => modelValue === 'large';
   const canUseModel = (modelValue: string): boolean => {
+    if (isModelComingSoon(modelValue)) return false; // disabled for now (coming soon)
     // Use fallback defaults if usageLimits is null
     const limits = usageLimits || defaultUsageLimits;
     if (limits.is_paid) return true;
@@ -222,7 +228,7 @@ export default function Home() {
     if (modelValue === 'tiny' || modelValue === 'base') {
       return limits.remaining_tiny_base > 0;
     }
-    if (modelValue === 'small' || modelValue === 'medium' || modelValue === 'large') {
+    if (modelValue === 'small' || modelValue === 'medium') {
       return limits.remaining_small > 0;
     }
     return false;
@@ -381,7 +387,7 @@ export default function Home() {
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                  !canUseModel(model)
+                  !canUseModel(model) && !isModelComingSoon(model)
                     ? 'border-red-300 bg-red-50'
                     : 'border-gray-300'
                 }`}
@@ -389,13 +395,18 @@ export default function Home() {
                 disabled={isTranscribing}
               >
                 {MODELS.map((m) => (
-                  <option key={m.value} value={m.value} disabled={!canUseModel(m.value)}>
+                  <option
+                    key={m.value}
+                    value={m.value}
+                    disabled={'comingSoon' in m && m.comingSoon || !canUseModel(m.value)}
+                    style={'comingSoon' in m && m.comingSoon ? { color: '#9ca3af' } : undefined}
+                  >
                     {m.label}
-                    {!canUseModel(m.value) && ' (Limit reached)'}
+                    {'comingSoon' in m && m.comingSoon ? ' (coming soon™️..)' : !canUseModel(m.value) ? ' (Limit reached)' : ''}
                   </option>
                 ))}
               </select>
-              {!canUseModel(model) && (
+              {!canUseModel(model) && !isModelComingSoon(model) && (
                 <p className="mt-1 text-xs text-red-600">
                   {usageLimits?.is_paid
                     ? 'Insufficient minutes'
