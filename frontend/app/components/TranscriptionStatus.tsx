@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getTranscription, TranscriptionResult } from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -33,8 +33,17 @@ export default function TranscriptionStatus({
   const [estimatedTotalTime, setEstimatedTotalTime] = useState<number | undefined>();
   const [timeRemaining, setTimeRemaining] = useState<number | undefined>();
 
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+
+  // Keep refs up to date
   useEffect(() => {
-    let pollInterval: NodeJS.Timeout | null = null;
+    onCompleteRef.current = onComplete;
+    onErrorRef.current = onError;
+  }, [onComplete, onError]);
+
+  useEffect(() => {
     let isMounted = true;
 
     const poll = async () => {
@@ -51,7 +60,8 @@ export default function TranscriptionStatus({
           progress: result.progress,
           elapsed_time: result.elapsed_time,
           estimated_total_time: result.estimated_total_time,
-          time_remaining: result.time_remaining
+          time_remaining: result.time_remaining,
+          text_length: result.text?.length
         });
         
         setStatus(currentStatus);
@@ -73,18 +83,18 @@ export default function TranscriptionStatus({
         // If completed, call onComplete
         if (currentStatus === 'completed') {
           console.log(`[TranscriptionStatus] Job ${jobId} completed, calling onComplete`);
-          if (pollInterval) {
-            clearInterval(pollInterval);
-            pollInterval = null;
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
           }
-          onComplete(result);
+          onCompleteRef.current(result);
         } else if (currentStatus === 'failed') {
           console.error(`[TranscriptionStatus] Job ${jobId} failed`);
-          if (pollInterval) {
-            clearInterval(pollInterval);
-            pollInterval = null;
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
           }
-          onError('Transcription failed');
+          onErrorRef.current('Transcription failed');
         }
       } catch (error: any) {
         if (!isMounted) return;
@@ -100,26 +110,27 @@ export default function TranscriptionStatus({
           // Error
           console.error(`[TranscriptionStatus] Job ${jobId} error, stopping polling`);
           setStatus('failed');
-          if (pollInterval) {
-            clearInterval(pollInterval);
-            pollInterval = null;
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
           }
-          onError(error.response?.data?.detail || error.message || 'Transcription failed');
+          onErrorRef.current(error.response?.data?.detail || error.message || 'Transcription failed');
         }
       }
     };
 
     // Poll immediately, then every 2 seconds
     poll();
-    pollInterval = setInterval(poll, 2000);
+    pollIntervalRef.current = setInterval(poll, 2000);
 
     return () => {
       isMounted = false;
-      if (pollInterval) {
-        clearInterval(pollInterval);
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
       }
     };
-  }, [jobId, fingerprint]); // Removed onComplete and onError from dependencies to prevent unnecessary re-renders
+  }, [jobId, fingerprint]);
 
   const progressPercent = Math.round(progress * 100);
 
