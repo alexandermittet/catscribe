@@ -86,6 +86,11 @@ async def transcribe(
     x_api_key: Optional[str] = Header(None)
 ):
     """Transcribe audio file"""
+    # #region agent log
+    import json
+    with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
+        f.write(json.dumps({'location':'main.py:79','message':'transcribe endpoint entry','data':{'model':model,'language':language,'filename':file.filename,'fingerprint':fingerprint[:10]},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'A,C,D'})+'\n')
+    # #endregion
     # Rate limiting - check manually (skip for now in dev, will add back later)
     # rate_limit_key = get_remote_address(request) if request else "unknown"
     # if not redis_client.set_rate_limit(rate_limit_key, 10, 3600):
@@ -107,10 +112,22 @@ async def transcribe(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"File validation failed: {str(e)}")
     
+    # #region agent log
+    with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
+        f.write(json.dumps({'location':'main.py:111','message':'before ModelSize parse','data':{'model_raw':model,'model_lower':model.lower()},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'A,C,D'})+'\n')
+    # #endregion
     # Parse model size
     try:
         model_size = ModelSize(model.lower())
-    except ValueError:
+        # #region agent log
+        with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({'location':'main.py:117','message':'ModelSize parsed successfully','data':{'model_size_value':model_size.value},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'A,C'})+'\\n')
+        # #endregion
+    except ValueError as ve:
+        # #region agent log
+        with open('/Users/alexandermittet/LOCAL documents/transkriber-app/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({'location':'main.py:123','message':'ModelSize ValueError caught','data':{'model':model,'error':str(ve)},'timestamp':int(__import__('time').time()*1000),'sessionId':'debug-session','hypothesisId':'C'})+'\\n')
+        # #endregion
         raise HTTPException(status_code=400, detail=f"Invalid model size: {model}")
     
     # Check free tier limits
