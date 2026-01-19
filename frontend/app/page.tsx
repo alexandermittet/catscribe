@@ -97,8 +97,8 @@ const defaultUsageLimits: UsageLimit = {
   is_paid: false
 };
 
-const defaultCredits: CreditBalance = {
-  credits: 0,
+const defaultMinutes: MinutesBalance = {
+  minutes: 0,
   email: undefined
 };
 
@@ -112,7 +112,7 @@ export default function Home() {
   const [result, setResult] = useState<TranscriptionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [usageLimits, setUsageLimits] = useState<UsageLimit | null>(null);
-  const [credits, setCredits] = useState<CreditBalance | null>(null);
+  const [minutes, setMinutes] = useState<MinutesBalance | null>(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
@@ -121,17 +121,17 @@ export default function Home() {
   const loadUsageData = useCallback(async (fp: string) => {
     setLoadingUsage(true);
     try {
-      const [limits, creditBalance] = await Promise.all([
+      const [limits, minutesBalance] = await Promise.all([
         getUsageLimits(fp),
-        getCredits(fp),
+        getMinutes(fp),
       ]);
       setUsageLimits(limits);
-      setCredits(creditBalance);
+      setMinutes(minutesBalance);
     } catch (err) {
       console.error('Failed to load usage data:', err);
       // Set default fallback values on error
       setUsageLimits(defaultUsageLimits);
-      setCredits(defaultCredits);
+      setMinutes(defaultMinutes);
     } finally {
       setLoadingUsage(false);
     }
@@ -143,7 +143,7 @@ export default function Home() {
       setFingerprint(fp);
       localStorage.setItem('fingerprint', fp);
       
-      // Load usage limits and credits
+      // Load usage limits and minutes
       loadUsageData(fp);
     });
 
@@ -279,8 +279,8 @@ export default function Home() {
         </div>
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">catscribe</h1>
-          <p className="text-lg text-gray-600">Cute cat that takes your interview tapes and thoroughly transcribes them in (almost) any language</p>
-          <p className="text-sm text-gray-500 mt-3">Note: Cat doesn&apos;t have the best hearing when far away, for best results keep your recorder close to the person speaking so cat can hear whats being said loud and clear</p>
+          <p className="text-lg text-gray-600">Cute cat that takes your interview tapes and transcribes them in (almost) any language</p>
+          <p className="text-sm text-gray-500 mt-3">note: cat doesn&apos;t have the best hearing when far away, for best results, keep your recorder close to the person speaking, so cat can hear what&apos;s being said loud and clear</p>
         </div>
 
         {/* Usage Info */}
@@ -293,13 +293,13 @@ export default function Home() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <span className="text-green-600 font-semibold">Premium Cat</span>
-                {credits && credits.email && (
-                  <span className="text-sm text-gray-500">({credits.email})</span>
+                {minutes && minutes.email && (
+                  <span className="text-sm text-gray-500">({minutes.email})</span>
                 )}
               </div>
-              {credits && (
+              {minutes && (
                 <span className="text-gray-700">
-                  Credits: <span className="font-semibold">{credits.credits.toFixed(1)}</span>
+                  Minutes: <span className="font-semibold">{minutes.minutes.toFixed(1)}</span>
                 </span>
               )}
             </div>
@@ -322,13 +322,13 @@ export default function Home() {
               )}
             </div>
           ))}
-          {!loadingUsage && credits && credits.credits === 0 && !credits.email && (
+          {!loadingUsage && minutes && minutes.minutes === 0 && !minutes.email && (
             <div className="mt-2 pt-2 border-t border-gray-200">
               <button
                 onClick={() => setShowClaimModal(true)}
                 className="text-sm text-blue-600 hover:underline"
               >
-                Already bought credits and not showing? click here
+                Already bought minutes and not showing? click here
               </button>
             </div>
           )}
@@ -397,7 +397,7 @@ export default function Home() {
               {!canUseModel(model) && (
                 <p className="mt-1 text-xs text-red-600">
                   {usageLimits?.is_paid
-                    ? 'Insufficient credits'
+                    ? 'Insufficient minutes'
                     : 'Free tier limit reached for this model'}
                 </p>
               )}
@@ -459,7 +459,7 @@ export default function Home() {
         )}
 
         {showClaimModal && (
-          <ClaimCreditsModal
+          <ClaimMinutesModal
             fingerprint={fingerprint}
             onClose={() => setShowClaimModal(false)}
             onSuccess={() => {

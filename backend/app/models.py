@@ -30,8 +30,8 @@ class TranscriptionResult(BaseModel):
     download_urls: dict[str, str]  # format -> url
 
 
-class CreditBalance(BaseModel):
-    credits: float
+class MinutesBalance(BaseModel):
+    minutes: float
     email: Optional[str] = None
 
 

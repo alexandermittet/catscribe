@@ -15,10 +15,10 @@ from app.models import (
     TranscriptionResponse,
     TranscriptionResult,
     ModelSize,
-    CreditBalance,
+    MinutesBalance,
     UsageLimit
 )
-from app.transcription import transcribe_audio, calculate_credit_cost
+from app.transcription import transcribe_audio
 from app.security import validate_upload, FREE_TIER_MAX_DURATION, PAID_TIER_MAX_DURATION
 from app.storage import (
     save_transcription_outputs,
@@ -97,7 +97,7 @@ async def transcribe(
     # Get usage info
     usage = redis_client.get_usage(fingerprint)
     is_paid = usage.get("is_paid", False)
-    credits = usage.get("credits", 0.0)
+    minutes = usage.get("minutes", 0.0)
     
     # Validate and get file info
     try:
@@ -134,13 +134,13 @@ async def transcribe(
                     detail=f"Insufficient premium minutes. Required: {duration_minutes:.1f}, Available: {remaining_premium_minutes:.1f}"
                 )
     
-    # Check credit balance for paid users
+    # Check minutes balance for paid users
     if is_paid:
-        cost = calculate_credit_cost(duration, model_size)
-        if credits < cost:
+        duration_minutes = duration / 60.0
+        if minutes < duration_minutes:
             raise HTTPException(
                 status_code=402,
-                detail=f"Insufficient credits. Required: {cost:.1f}, Available: {credits:.1f}"
+                detail=f"Insufficient minutes. Required: {duration_minutes:.1f}, Available: {minutes:.1f}"
             )
     
     # Generate job ID
@@ -170,10 +170,10 @@ async def transcribe(
             # Update usage
             redis_client.increment_usage(fingerprint, model_size.value, is_paid, duration_seconds=duration)
             
-            # Deduct credits if paid
+            # Deduct minutes if paid (subtract actual minutes transcribed)
             if is_paid:
-                cost = calculate_credit_cost(duration, model_size)
-                redis_client.deduct_credits(fingerprint, cost)
+                duration_minutes = duration / 60.0
+                redis_client.deduct_minutes(fingerprint, duration_minutes)
             
             # Store job metadata
             redis_client.store_job_metadata(job_id, {
@@ -295,49 +295,49 @@ async def download_transcription(
     )
 
 
-@app.get("/credits", response_model=CreditBalance)
-async def get_credits(
+@app.get("/minutes", response_model=MinutesBalance)
+async def get_minutes(
     fingerprint: str = Query(...),
     x_api_key: Optional[str] = Header(None)
 ):
-    """Get credit balance"""
+    """Get minutes balance"""
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     
     usage = redis_client.get_usage(fingerprint)
-    return CreditBalance(
-        credits=usage.get("credits", 0.0),
+    return MinutesBalance(
+        minutes=usage.get("minutes", 0.0),
         email=usage.get("email")
     )
 
 
-@app.post("/credits/add")
-async def add_credits(
+@app.post("/minutes/add")
+async def add_minutes(
     fingerprint: str = Form(...),
     email: str = Form(...),
-    credits: float = Form(...),
+    minutes: float = Form(...),
     x_api_key: Optional[str] = Header(None)
 ):
-    """Add credits to an account (called by Stripe webhook)"""
+    """Add minutes to an account (called by Stripe webhook)"""
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     
     usage = redis_client.get_usage(fingerprint)
-    current_credits = usage.get("credits", 0.0)
-    new_credits = current_credits + credits
+    current_minutes = usage.get("minutes", 0.0)
+    new_minutes = current_minutes + minutes
     
-    redis_client.set_credits(fingerprint, new_credits, email)
+    redis_client.set_minutes(fingerprint, new_minutes, email)
     
-    return {"success": True, "credits": new_credits}
+    return {"success": True, "minutes": new_minutes}
 
 
-@app.post("/credits/claim", response_model=CreditBalance)
-async def claim_credits(
+@app.post("/minutes/claim", response_model=MinutesBalance)
+async def claim_minutes(
     fingerprint: str = Form(...),
     email: str = Form(...),
     x_api_key: Optional[str] = Header(None)
 ):
-    """Claim credits by email address"""
+    """Claim minutes by email address"""
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     
@@ -351,14 +351,14 @@ async def claim_credits(
     if not existing:
         raise HTTPException(
             status_code=404,
-            detail="No credits found for this email address"
+            detail="No minutes found for this email address"
         )
     
-    # Link fingerprint to email and merge credits
+    # Link fingerprint to email and merge minutes
     usage = redis_client.link_fingerprint_to_email(fingerprint, email.lower())
     
-    return CreditBalance(
-        credits=usage.get("credits", 0.0),
+    return MinutesBalance(
+        minutes=usage.get("minutes", 0.0),
         email=usage.get("email")
     )
 

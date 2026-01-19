@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const package_ = CREDIT_PACKAGES.find(p => p.id === packageId);
+    const package_ = MINUTES_PACKAGES.find(p => p.id === packageId);
     if (!package_) {
       return NextResponse.json(
         { detail: 'Invalid package' },
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
             currency: 'usd',
             product_data: {
               name: productName,
-              description: `${package_.credits} transcription credits`,
+              description: `${package_.minutes} transcription minutes`,
             },
             unit_amount: finalPrice,
           },
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         fingerprint,
         email,
-        credits: package_.credits.toString(),
+        minutes: package_.minutes.toString(),
       },
     });
 

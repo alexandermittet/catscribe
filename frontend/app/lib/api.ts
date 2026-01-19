@@ -93,10 +93,10 @@ export async function getTranscription(
   return response.json();
 }
 
-export async function getCredits(fingerprint: string): Promise<CreditBalance> {
-  const response = await fetch(`/api/credits?fingerprint=${encodeURIComponent(fingerprint)}`);
+export async function getMinutes(fingerprint: string): Promise<MinutesBalance> {
+  const response = await fetch(`/api/minutes?fingerprint=${encodeURIComponent(fingerprint)}`);
   if (!response.ok) {
-    throw new Error('Failed to get credits');
+    throw new Error('Failed to get minutes');
   }
   return response.json();
 }
@@ -109,8 +109,8 @@ export async function getUsageLimits(fingerprint: string): Promise<UsageLimit> {
   return response.json();
 }
 
-export async function claimCredits(email: string, fingerprint: string): Promise<CreditBalance> {
-  const response = await fetch('/api/credits/claim', {
+export async function claimMinutes(email: string, fingerprint: string): Promise<MinutesBalance> {
+  const response = await fetch('/api/minutes/claim', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -122,8 +122,8 @@ export async function claimCredits(email: string, fingerprint: string): Promise<
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to claim credits' }));
-    throw new Error(error.detail || 'Failed to claim credits');
+    const error = await response.json().catch(() => ({ detail: 'Failed to claim minutes' }));
+    throw new Error(error.detail || 'Failed to claim minutes');
   }
 
   return response.json();

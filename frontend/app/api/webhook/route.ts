@@ -39,23 +39,23 @@ export async function POST(request: NextRequest) {
     
     const fingerprint = session.metadata?.fingerprint;
     const email = session.metadata?.email;
-    const credits = parseFloat(session.metadata?.credits || '0');
+    const minutes = parseFloat(session.metadata?.minutes || '0');
 
-    if (!fingerprint || !email || !credits) {
+    if (!fingerprint || !email || !minutes) {
       return NextResponse.json(
         { detail: 'Missing metadata in session' },
         { status: 400 }
       );
     }
 
-    // Update credits in backend
+    // Update minutes in backend
     try {
       const formData = new FormData();
       formData.append('fingerprint', fingerprint);
       formData.append('email', email);
-      formData.append('credits', credits.toString());
+      formData.append('minutes', minutes.toString());
 
-      const response = await fetch(`${BACKEND_URL}/credits/add`, {
+      const response = await fetch(`${BACKEND_URL}/minutes/add`, {
         method: 'POST',
         headers: {
           'X-API-Key': API_KEY,
@@ -64,14 +64,14 @@ export async function POST(request: NextRequest) {
       });
 
       if (!response.ok) {
-        console.error('Failed to update credits:', await response.text());
+        console.error('Failed to update minutes:', await response.text());
         return NextResponse.json(
-          { detail: 'Failed to update credits' },
+          { detail: 'Failed to update minutes' },
           { status: 500 }
         );
       }
     } catch (error: any) {
-      console.error('Error updating credits:', error);
+      console.error('Error updating minutes:', error);
       return NextResponse.json(
         { detail: error.message },
         { status: 500 }

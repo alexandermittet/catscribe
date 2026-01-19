@@ -2,25 +2,19 @@
 
 import { useState } from 'react';
 
-interface CheckoutModalProps {
+interface ClaimMinutesModalProps {
   fingerprint: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const MINUTES_PACKAGES = [
-  { id: 'small', minutes: 50, price: 5, name: '50 Minutes' },
-  { id: 'medium', minutes: 120, price: 10, name: '120 Minutes' },
-  { id: 'large', minutes: 300, price: 20, name: '300 Minutes' },
-];
-
-export default function CheckoutModal({ fingerprint, onClose, onSuccess }: CheckoutModalProps) {
+export default function ClaimMinutesModal({ fingerprint, onClose, onSuccess }: ClaimMinutesModalProps) {
   const [email, setEmail] = useState('');
-  const [selectedPackage, setSelectedPackage] = useState('medium');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleCheckout = async () => {
+  const handleClaim = async () => {
     if (!email || !email.includes('@')) {
       setError('Please enter a valid email address');
       return;
@@ -28,9 +22,10 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
 
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
-      const response = await fetch('/api/checkout', {
+      const response = await fetch('/api/minutes/claim', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,22 +33,22 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
         body: JSON.stringify({
           fingerprint,
           email,
-          packageId: selectedPackage,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Failed to create checkout session');
+        throw new Error(data.detail || 'Failed to claim minutes');
       }
 
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      setSuccess(true);
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 1500);
     } catch (err: any) {
-      setError(err.message || 'Failed to start checkout');
+      setError(err.message || 'Failed to claim minutes');
       setLoading(false);
     }
   };
@@ -62,7 +57,7 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Purchase Minutes</h2>
+          <h2 className="text-2xl font-bold">Claim Your Minutes</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -72,6 +67,10 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
         </div>
 
         <div className="space-y-4">
+          <p className="text-gray-600 text-sm">
+            Enter the email address you used to purchase minutes. Your minutes will be linked to this device.
+          </p>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -82,36 +81,8 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="your@email.com"
+              disabled={loading || success}
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Minutes Package
-            </label>
-            <div className="space-y-2">
-              {MINUTES_PACKAGES.map((pkg) => (
-                <label
-                  key={pkg.id}
-                  className={`block p-3 border rounded-md cursor-pointer transition-colors ${
-                    selectedPackage === pkg.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="package"
-                    value={pkg.id}
-                    checked={selectedPackage === pkg.id}
-                    onChange={(e) => setSelectedPackage(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span className="font-medium">{pkg.name}</span>
-                  <span className="ml-2 text-gray-600">- ${pkg.price}</span>
-                </label>
-              ))}
-            </div>
           </div>
 
           {error && (
@@ -120,20 +91,26 @@ export default function CheckoutModal({ fingerprint, onClose, onSuccess }: Check
             </div>
           )}
 
+          {success && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-green-800 text-sm">Minutes claimed successfully! Reloading...</p>
+            </div>
+          )}
+
           <div className="flex space-x-3">
             <button
               onClick={onClose}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              disabled={loading}
+              disabled={loading || success}
             >
               Cancel
             </button>
             <button
-              onClick={handleCheckout}
-              disabled={loading || !email}
+              onClick={handleClaim}
+              disabled={loading || !email || success}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {loading ? 'Processing...' : 'Continue to Payment'}
+              {loading ? 'Claiming...' : success ? 'Success!' : 'Claim Minutes'}
             </button>
           </div>
         </div>

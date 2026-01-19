@@ -31,7 +31,7 @@ class RedisClient:
                 "premium_minutes_used": 0.0,
                 "is_paid": False,
                 "email": None,
-                "credits": 0.0
+                "minutes": 0.0
             }
         data = self.client.get(f"usage:{fingerprint}")
         if data:
@@ -47,7 +47,7 @@ class RedisClient:
             "premium_minutes_used": 0.0,
             "is_paid": False,
             "email": None,
-            "credits": 0.0
+            "minutes": 0.0
         }
     
     def find_usage_by_email(self, email: str) -> Optional[tuple[str, Dict[str, Any]]]:
@@ -79,7 +79,7 @@ class RedisClient:
         return None
     
     def link_fingerprint_to_email(self, fingerprint: str, email: str) -> Dict[str, Any]:
-        """Link a fingerprint to an email account and merge credits"""
+        """Link a fingerprint to an email account and merge minutes"""
         if not self.client:
             return self.get_usage(fingerprint)
         
@@ -96,8 +96,8 @@ class RedisClient:
             if existing_fp == fingerprint:
                 return current_usage
             
-            # Merge credits and usage minutes
-            merged_credits = existing_usage.get("credits", 0.0) + current_usage.get("credits", 0.0)
+            # Merge minutes and usage minutes
+            merged_minutes = existing_usage.get("minutes", 0.0) + current_usage.get("minutes", 0.0)
             merged_tiny_base_minutes = max(
                 existing_usage.get("tiny_base_minutes_used", 0.0),
                 current_usage.get("tiny_base_minutes_used", 0.0)
@@ -108,7 +108,7 @@ class RedisClient:
             )
             
             # Update the existing fingerprint with merged data
-            existing_usage["credits"] = merged_credits
+            existing_usage["minutes"] = merged_minutes
             existing_usage["tiny_base_minutes_used"] = merged_tiny_base_minutes
             existing_usage["premium_minutes_used"] = merged_premium_minutes
             existing_usage["email"] = email_lower
@@ -122,7 +122,7 @@ class RedisClient:
             
             # Update current fingerprint to point to email account
             current_usage["email"] = email_lower
-            current_usage["credits"] = merged_credits
+            current_usage["minutes"] = merged_minutes
             current_usage["tiny_base_minutes_used"] = merged_tiny_base_minutes
             current_usage["premium_minutes_used"] = merged_premium_minutes
             current_usage["is_paid"] = True
@@ -182,12 +182,12 @@ class RedisClient:
             json.dumps(usage)
         )
     
-    def set_credits(self, fingerprint: str, credits: float, email: Optional[str] = None):
-        """Set credit balance for a fingerprint"""
+    def set_minutes(self, fingerprint: str, minutes: float, email: Optional[str] = None):
+        """Set minutes balance for a fingerprint"""
         if not self.client:
             return
         usage = self.get_usage(fingerprint)
-        usage["credits"] = credits
+        usage["minutes"] = minutes
         if email:
             usage["email"] = email
             usage["is_paid"] = True
@@ -198,17 +198,17 @@ class RedisClient:
             json.dumps(usage)
         )
     
-    def deduct_credits(self, fingerprint: str, amount: float) -> bool:
-        """Deduct credits, returns True if successful"""
+    def deduct_minutes(self, fingerprint: str, amount: float) -> bool:
+        """Deduct minutes, returns True if successful"""
         if not self.client:
             return True  # Allow in dev mode
         usage = self.get_usage(fingerprint)
-        current_credits = usage.get("credits", 0.0)
+        current_minutes = usage.get("minutes", 0.0)
         
-        if current_credits < amount:
+        if current_minutes < amount:
             return False
         
-        usage["credits"] = current_credits - amount
+        usage["minutes"] = current_minutes - amount
         self.client.setex(
             f"usage:{fingerprint}",
             86400 * 365,
