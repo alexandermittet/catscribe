@@ -196,12 +196,12 @@ export default function Home() {
         {/* Tape recorder image - desktop left, mobile left */}
         <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none" style={{ left: 'calc((100vw - 56rem) / 4 - 100px)' }}>
           <img
-            src="/tape-recorder.png"
+            src="/tape-recorder.svg"
             alt="Tape Recorder"
             width={200}
             height={200}
             className="opacity-80"
-            style={{ maxWidth: '200px', height: 'auto', objectFit: 'contain' }}
+            style={{ maxWidth: '200px', height: 'auto' }}
           />
         </div>
         {/* Cat image - desktop right, mobile right */}
@@ -218,12 +218,12 @@ export default function Home() {
         {/* Mobile: both images side by side above content */}
         <div className="lg:hidden flex justify-center items-center gap-4 mb-6">
           <img
-            src="/tape-recorder.png"
+            src="/tape-recorder.svg"
             alt="Tape Recorder"
             width={150}
             height={150}
             className="opacity-80"
-            style={{ maxWidth: '150px', height: 'auto', objectFit: 'contain' }}
+            style={{ maxWidth: '150px', height: 'auto' }}
           />
           <img
             src="/nerd-cat.svg"
