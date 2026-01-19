@@ -5,9 +5,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Dict, Any
 
+from app.config import settings
 
-STORAGE_ROOT = "/data/transcriptions"
-TTL_DAYS = 7
+
+STORAGE_ROOT = settings.storage_root
+TTL_DAYS = settings.ttl_days
 
 
 def get_storage_path(fingerprint: str, job_id: str) -> Path:

@@ -3,6 +3,7 @@ import os
 import tempfile
 from typing import Optional
 from app.models import ModelSize
+from app.config import settings
 
 
 # Model cache in memory
@@ -11,7 +12,7 @@ model_cache = {}
 
 def get_model_cache_dir() -> str:
     """Get the directory for caching Whisper models"""
-    cache_dir = "/data/whisper_models"
+    cache_dir = settings.model_cache_dir
     os.makedirs(cache_dir, exist_ok=True)
     return cache_dir
 

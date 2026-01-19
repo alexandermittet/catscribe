@@ -1,0 +1,46 @@
+{
+	"id": "prod-environment",
+	"name": "Production",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "https://your-production-domain.fly.dev",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "api_key",
+			"value": "",
+			"type": "secret",
+			"enabled": true,
+			"description": "Production API key - set this value"
+		},
+		{
+			"key": "test_fingerprint",
+			"value": "test-fingerprint-prod-12345",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "test_email",
+			"value": "prod-test@example.com",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "test_audio_file",
+			"value": "",
+			"type": "default",
+			"enabled": true,
+			"description": "Path to test audio file (MP3, WAV, etc.)"
+		},
+		{
+			"key": "invalid_file",
+			"value": "",
+			"type": "default",
+			"enabled": true,
+			"description": "Path to invalid file (e.g., .txt file) for testing"
+		}
+	],
+	"_postman_variable_scope": "environment"
+}

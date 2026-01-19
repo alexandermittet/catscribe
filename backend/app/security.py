@@ -5,20 +5,18 @@ from typing import Tuple
 import mutagen
 from mutagen import File as MutagenFile
 
+from app.config import settings
+
 
 # Allowed file extensions
-ALLOWED_EXTENSIONS = {".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aiff"}
+ALLOWED_EXTENSIONS = set(settings.allowed_extensions)
 
 # MIME types that correspond to audio files
-ALLOWED_MIME_TYPES = {
-    "audio/mpeg", "audio/mp3", "audio/wav", "audio/wave", "audio/x-wav",
-    "audio/mp4", "audio/m4a", "audio/x-m4a", "audio/ogg", "audio/vorbis",
-    "audio/flac", "audio/x-flac", "video/webm", "video/mp4", "video/quicktime"
-}
+ALLOWED_MIME_TYPES = set(settings.allowed_mime_types)
 
-MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
-FREE_TIER_MAX_DURATION = 45 * 60  # 45 minutes in seconds
-PAID_TIER_MAX_DURATION = 3 * 60 * 60  # 3 hours in seconds
+MAX_FILE_SIZE = settings.max_file_size_mb * 1024 * 1024  # Convert MB to bytes
+FREE_TIER_MAX_DURATION = settings.free_tier_max_duration
+PAID_TIER_MAX_DURATION = settings.paid_tier_max_duration
 
 
 def validate_file_extension(filename: str) -> bool:

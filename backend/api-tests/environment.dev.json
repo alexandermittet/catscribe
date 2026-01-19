@@ -1,0 +1,45 @@
+{
+	"id": "dev-environment",
+	"name": "Development",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "api_key",
+			"value": "dev-key-change-in-production",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "test_fingerprint",
+			"value": "test-fingerprint-dev-12345",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "test_email",
+			"value": "dev-test@example.com",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "test_audio_file",
+			"value": "",
+			"type": "default",
+			"enabled": true,
+			"description": "Path to test audio file (MP3, WAV, etc.)"
+		},
+		{
+			"key": "invalid_file",
+			"value": "",
+			"type": "default",
+			"enabled": true,
+			"description": "Path to invalid file (e.g., .txt file) for testing"
+		}
+	],
+	"_postman_variable_scope": "environment"
+}

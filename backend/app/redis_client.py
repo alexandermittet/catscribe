@@ -3,10 +3,12 @@ import os
 import json
 from typing import Optional, Dict, Any
 
+from app.config import settings
+
 
 class RedisClient:
     def __init__(self):
-        redis_url = os.getenv("REDIS_URL")
+        redis_url = settings.redis_url
         if not redis_url:
             print("Warning: REDIS_URL not set. Running in fallback mode (no persistence)")
             self.client = None

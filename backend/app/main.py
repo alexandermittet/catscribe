@@ -19,7 +19,7 @@ from app.models import (
     UsageLimit
 )
 from app.transcription import transcribe_audio
-from app.security import validate_upload, FREE_TIER_MAX_DURATION, PAID_TIER_MAX_DURATION
+from app.security import validate_upload
 from app.storage import (
     save_transcription_outputs,
     get_transcription_files,
@@ -27,6 +27,7 @@ from app.storage import (
     cleanup_expired_transcriptions
 )
 from app.redis_client import RedisClient
+from app.config import settings
 
 
 # Initialize Redis client
@@ -41,7 +42,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS configuration
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+allowed_origins = settings.allowed_origins.split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -64,10 +65,9 @@ app.router.lifespan_context = lifespan
 
 def verify_api_key(x_api_key: Optional[str] = Header(None)) -> bool:
     """Verify API key from header"""
-    expected_key = os.getenv("API_KEY")
-    if not expected_key:
+    if not settings.api_key:
         return True  # Skip if not configured (dev mode)
-    return x_api_key == expected_key
+    return x_api_key == settings.api_key
 
 
 @app.get("/health")
@@ -386,8 +386,8 @@ async def get_usage_limits(
     premium_minutes_used = usage.get("premium_minutes_used", 0.0)
     
     return UsageLimit(
-        remaining_tiny_base=int(max(0, 45 - tiny_base_minutes_used)),
-        remaining_small=int(max(0, 5 - premium_minutes_used)),
+        remaining_tiny_base=int(max(0, settings.free_tiny_base_minutes - tiny_base_minutes_used)),
+        remaining_small=int(max(0, settings.free_premium_minutes - premium_minutes_used)),
         is_paid=False
     )
 
