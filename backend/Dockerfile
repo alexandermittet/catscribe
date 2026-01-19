@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Install CPU-only PyTorch first (much smaller, ~800MB vs 2.5GB)
-# This prevents openai-whisper from pulling in CUDA dependencies
+# faster-whisper uses CTranslate2 which is compatible with CPU-only PyTorch
 RUN pip install --no-cache-dir torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
 
 # Copy requirements and install remaining Python dependencies

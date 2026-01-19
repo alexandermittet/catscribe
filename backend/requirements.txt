@@ -1,7 +1,8 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
-openai-whisper==20231117
+faster-whisper==1.0.3
+requests==2.31.0
 ffmpeg-python==0.2.0
 redis==5.0.1
 slowapi==0.1.9
