@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { LanguageProvider } from './contexts/LanguageContext'
 
 export const metadata: Metadata = {
-  title: 'catscribe - Audio Transcription Service',
-  description: 'Cute cat that transcribes your audio files in almost any language',
+  title: 'catscribe - Lydtransskriptionstjeneste',
+  description: 'Sød kat der transskriberer dine lydfiler på næsten alle sprog',
 }
 
 export default function RootLayout({
@@ -12,8 +13,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="da">
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   )
 }

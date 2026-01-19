@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ClaimCreditsModalProps {
   fingerprint: string;
@@ -9,6 +10,7 @@ interface ClaimCreditsModalProps {
 }
 
 export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: ClaimCreditsModalProps) {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +18,7 @@ export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: C
 
   const handleClaim = async () => {
     if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address');
+      setError(t('claim.errorInvalidEmail'));
       return;
     }
 
@@ -39,7 +41,7 @@ export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: C
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Failed to claim credits');
+        throw new Error(data.detail || t('claim.errorClaimFailed').replace('{type}', t('claim.credits')));
       }
 
       setSuccess(true);
@@ -48,7 +50,7 @@ export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: C
         onClose();
       }, 1500);
     } catch (err: any) {
-      setError(err.message || 'Failed to claim credits');
+      setError(err.message || t('claim.errorClaimFailed').replace('{type}', t('claim.credits')));
       setLoading(false);
     }
   };
@@ -57,7 +59,7 @@ export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: C
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Claim Your Credits</h2>
+          <h2 className="text-2xl font-bold">{t('claim.creditsTitle')}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -68,19 +70,19 @@ export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: C
 
         <div className="space-y-4">
           <p className="text-gray-600 text-sm">
-            Enter the email address you used to purchase credits. Your credits will be linked to this device.
+            {t('claim.description').replace('{type}', t('claim.credits')).replace('{type}', t('claim.credits'))}
           </p>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              {t('common.emailAddress')}
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="your@email.com"
+              placeholder={t('common.emailPlaceholder')}
               disabled={loading || success}
             />
           </div>
@@ -93,7 +95,7 @@ export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: C
 
           {success && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-green-800 text-sm">Credits claimed successfully! Reloading...</p>
+              <p className="text-green-800 text-sm">{t('claim.successMessage').replace('{type}', t('claim.credits'))}</p>
             </div>
           )}
 
@@ -103,14 +105,14 @@ export default function ClaimCreditsModal({ fingerprint, onClose, onSuccess }: C
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
               disabled={loading || success}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleClaim}
               disabled={loading || !email || success}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {loading ? 'Claiming...' : success ? 'Success!' : 'Claim Credits'}
+              {loading ? t('claim.claiming') : success ? t('common.success') : t('claim.claimButton').replace('{type}', t('claim.credits'))}
             </button>
           </div>
         </div>

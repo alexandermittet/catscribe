@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getTranscription, TranscriptionResult } from '../lib/api';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface TranscriptionStatusProps {
   jobId: string;
@@ -16,6 +17,7 @@ export default function TranscriptionStatus({
   onComplete,
   onError,
 }: TranscriptionStatusProps) {
+  const { t } = useLanguage();
   const [status, setStatus] = useState<'queued' | 'processing' | 'completed' | 'failed'>('queued');
 
   useEffect(() => {
@@ -47,25 +49,25 @@ export default function TranscriptionStatus({
         {status === 'queued' && (
           <>
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-            <span className="text-blue-700">Queued for processing...</span>
+            <span className="text-blue-700">{t('status.queued')}</span>
           </>
         )}
         {status === 'processing' && (
           <>
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-            <span className="text-blue-700">Transcribing audio...</span>
+            <span className="text-blue-700">{t('status.processing')}</span>
           </>
         )}
         {status === 'completed' && (
           <>
             <div className="rounded-full h-5 w-5 bg-green-500"></div>
-            <span className="text-green-700">Transcription completed!</span>
+            <span className="text-green-700">{t('status.completed')}</span>
           </>
         )}
         {status === 'failed' && (
           <>
             <div className="rounded-full h-5 w-5 bg-red-500"></div>
-            <span className="text-red-700">Transcription failed</span>
+            <span className="text-red-700">{t('status.failed')}</span>
           </>
         )}
       </div>

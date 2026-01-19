@@ -8,8 +8,11 @@ import ResultDisplay from './components/ResultDisplay';
 import CheckoutModal from './components/CheckoutModal';
 import ClaimCreditsModal from './components/ClaimCreditsModal';
 import ClaimMinutesModal from './components/ClaimMinutesModal';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import FirstTimeArrow from './components/FirstTimeArrow';
 import { getFingerprint } from './lib/fingerprint';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
+import { useLanguage } from './contexts/LanguageContext';
 import {
   transcribeAudio,
   getMinutes,
@@ -19,76 +22,76 @@ import {
   MinutesBalance,
 } from './lib/api';
 
-const LANGUAGES = [
-  { value: 'auto', label: '🌐 Auto-detect' },
+const getLanguages = (t: (key: string) => string) => [
+  { value: 'auto', label: t('languages.autoDetect') },
   // Scandinavian languages
-  { value: 'da', label: '🇩🇰 Danish' },
-  { value: 'no', label: '🇳🇴 Norwegian' },
-  { value: 'sv', label: '🇸🇪 Swedish' },
-  { value: 'is', label: '🇮🇸 Icelandic' },
-  { value: 'fi', label: '🇫🇮 Finnish' },
+  { value: 'da', label: t('languages.danish') },
+  { value: 'no', label: t('languages.norwegian') },
+  { value: 'sv', label: t('languages.swedish') },
+  { value: 'is', label: t('languages.icelandic') },
+  { value: 'fi', label: t('languages.finnish') },
   // Priority languages
-  { value: 'en', label: '🇬🇧 English' },
-  { value: 'uk', label: '🇺🇦 Ukrainian' },
+  { value: 'en', label: t('languages.english') },
+  { value: 'uk', label: t('languages.ukrainian') },
   // All other languages alphabetically
-  { value: 'af', label: '🇿🇦 Afrikaans' },
-  { value: 'ar', label: '🇸🇦 Arabic' },
-  { value: 'hy', label: '🇦🇲 Armenian' },
-  { value: 'az', label: '🇦🇿 Azerbaijani' },
-  { value: 'be', label: '🇧🇾 Belarusian' },
-  { value: 'bs', label: '🇧🇦 Bosnian' },
-  { value: 'bg', label: '🇧🇬 Bulgarian' },
-  { value: 'ca', label: '🇪🇸 Catalan' },
-  { value: 'zh', label: '🇨🇳 Chinese' },
-  { value: 'hr', label: '🇭🇷 Croatian' },
-  { value: 'cs', label: '🇨🇿 Czech' },
-  { value: 'nl', label: '🇳🇱 Dutch' },
-  { value: 'et', label: '🇪🇪 Estonian' },
-  { value: 'fr', label: '🇫🇷 French' },
-  { value: 'gl', label: '🇪🇸 Galician' },
-  { value: 'de', label: '🇩🇪 German' },
-  { value: 'el', label: '🇬🇷 Greek' },
-  { value: 'he', label: '🇮🇱 Hebrew' },
-  { value: 'hi', label: '🇮🇳 Hindi' },
-  { value: 'hu', label: '🇭🇺 Hungarian' },
-  { value: 'id', label: '🇮🇩 Indonesian' },
-  { value: 'it', label: '🇮🇹 Italian' },
-  { value: 'ja', label: '🇯🇵 Japanese' },
-  { value: 'kn', label: '🇮🇳 Kannada' },
-  { value: 'kk', label: '🇰🇿 Kazakh' },
-  { value: 'ko', label: '🇰🇷 Korean' },
-  { value: 'lv', label: '🇱🇻 Latvian' },
-  { value: 'lt', label: '🇱🇹 Lithuanian' },
-  { value: 'mk', label: '🇲🇰 Macedonian' },
-  { value: 'ms', label: '🇲🇾 Malay' },
-  { value: 'mr', label: '🇮🇳 Marathi' },
-  { value: 'mi', label: '🇳🇿 Maori' },
-  { value: 'ne', label: '🇳🇵 Nepali' },
-  { value: 'fa', label: '🇮🇷 Persian' },
-  { value: 'pl', label: '🇵🇱 Polish' },
-  { value: 'pt', label: '🇵🇹 Portuguese' },
-  { value: 'ro', label: '🇷🇴 Romanian' },
-  { value: 'ru', label: '🇷🇺 Russian' },
-  { value: 'sr', label: '🇷🇸 Serbian' },
-  { value: 'sk', label: '🇸🇰 Slovak' },
-  { value: 'sl', label: '🇸🇮 Slovenian' },
-  { value: 'es', label: '🇪🇸 Spanish' },
-  { value: 'sw', label: '🇹🇿 Swahili' },
-  { value: 'tl', label: '🇵🇭 Tagalog' },
-  { value: 'ta', label: '🇮🇳 Tamil' },
-  { value: 'th', label: '🇹🇭 Thai' },
-  { value: 'tr', label: '🇹🇷 Turkish' },
-  { value: 'ur', label: '🇵🇰 Urdu' },
-  { value: 'vi', label: '🇻🇳 Vietnamese' },
-  { value: 'cy', label: '🇬🇧 Welsh' },
+  { value: 'af', label: t('languages.afrikaans') },
+  { value: 'ar', label: t('languages.arabic') },
+  { value: 'hy', label: t('languages.armenian') },
+  { value: 'az', label: t('languages.azerbaijani') },
+  { value: 'be', label: t('languages.belarusian') },
+  { value: 'bs', label: t('languages.bosnian') },
+  { value: 'bg', label: t('languages.bulgarian') },
+  { value: 'ca', label: t('languages.catalan') },
+  { value: 'zh', label: t('languages.chinese') },
+  { value: 'hr', label: t('languages.croatian') },
+  { value: 'cs', label: t('languages.czech') },
+  { value: 'nl', label: t('languages.dutch') },
+  { value: 'et', label: t('languages.estonian') },
+  { value: 'fr', label: t('languages.french') },
+  { value: 'gl', label: t('languages.galician') },
+  { value: 'de', label: t('languages.german') },
+  { value: 'el', label: t('languages.greek') },
+  { value: 'he', label: t('languages.hebrew') },
+  { value: 'hi', label: t('languages.hindi') },
+  { value: 'hu', label: t('languages.hungarian') },
+  { value: 'id', label: t('languages.indonesian') },
+  { value: 'it', label: t('languages.italian') },
+  { value: 'ja', label: t('languages.japanese') },
+  { value: 'kn', label: t('languages.kannada') },
+  { value: 'kk', label: t('languages.kazakh') },
+  { value: 'ko', label: t('languages.korean') },
+  { value: 'lv', label: t('languages.latvian') },
+  { value: 'lt', label: t('languages.lithuanian') },
+  { value: 'mk', label: t('languages.macedonian') },
+  { value: 'ms', label: t('languages.malay') },
+  { value: 'mr', label: t('languages.marathi') },
+  { value: 'mi', label: t('languages.maori') },
+  { value: 'ne', label: t('languages.nepali') },
+  { value: 'fa', label: t('languages.persian') },
+  { value: 'pl', label: t('languages.polish') },
+  { value: 'pt', label: t('languages.portuguese') },
+  { value: 'ro', label: t('languages.romanian') },
+  { value: 'ru', label: t('languages.russian') },
+  { value: 'sr', label: t('languages.serbian') },
+  { value: 'sk', label: t('languages.slovak') },
+  { value: 'sl', label: t('languages.slovenian') },
+  { value: 'es', label: t('languages.spanish') },
+  { value: 'sw', label: t('languages.swahili') },
+  { value: 'tl', label: t('languages.tagalog') },
+  { value: 'ta', label: t('languages.tamil') },
+  { value: 'th', label: t('languages.thai') },
+  { value: 'tr', label: t('languages.turkish') },
+  { value: 'ur', label: t('languages.urdu') },
+  { value: 'vi', label: t('languages.vietnamese') },
+  { value: 'cy', label: t('languages.welsh') },
 ];
 
-const MODELS = [
-  { value: 'tiny', label: '😴 Lazy Cat (Fastest, Lower Quality)' },
-  { value: 'base', label: '🐱 Everyday Cat (Balanced)' },
-  { value: 'small', label: '📚 Studious Cat (Better Quality, Slower)' },
-  { value: 'medium', label: '🎯 Perfectionistic Cat (High Quality, A bit Slower)' },
-  { value: 'large', label: '💪 Hyperpolyglot Gigachad Cat (Best Quality, A lot slower)', comingSoon: true },
+const getModels = (t: (key: string) => string) => [
+  { value: 'tiny', label: t('models.tiny') },
+  { value: 'base', label: t('models.base') },
+  { value: 'small', label: t('models.small') },
+  { value: 'medium', label: t('models.medium') },
+  { value: 'large', label: t('models.large'), comingSoon: true },
 ];
 
 // Default fallback values
@@ -104,6 +107,7 @@ const defaultMinutes: MinutesBalance = {
 };
 
 export default function Home() {
+  const { t } = useLanguage();
   const [fingerprint, setFingerprint] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [language, setLanguage] = useState('auto');
@@ -118,6 +122,9 @@ export default function Home() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const LANGUAGES = getLanguages(t);
+  const MODELS = getModels(t);
 
   const loadUsageData = useCallback(async (fp: string) => {
     setLoadingUsage(true);
@@ -185,7 +192,7 @@ export default function Home() {
 
   const handleTranscribe = async () => {
     if (!selectedFile || !fingerprint) {
-      setError('Please select a file');
+      setError(t('form.pleaseSelectFile'));
       return;
     }
 
@@ -198,7 +205,7 @@ export default function Home() {
       setJobId(response.job_id);
     } catch (err: any) {
       setIsTranscribing(false);
-      const errorMessage = err.message || err.response?.data?.detail || err.response?.data?.message || 'Failed to start transcription';
+      const errorMessage = err.message || err.response?.data?.detail || err.response?.data?.message || t('errors.transcriptionFailed');
       setError(errorMessage);
       console.error('Transcription error:', err);
     }
@@ -236,6 +243,8 @@ export default function Home() {
 
   return (
     <>
+      <LanguageSwitcher />
+      <FirstTimeArrow />
       {/* Mouse-Cursor-following spotlight - behind content but above background */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -285,46 +294,46 @@ export default function Home() {
           />
         </div>
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">catscribe</h1>
-          <p className="text-lg text-gray-600">Cute cat that takes your interview tapes and transcribes them in (almost) any language</p>
-          <p className="text-sm text-gray-500 mt-3">note: cat doesn&apos;t have the best hearing when far away, for best results, keep your recorder close to the person speaking, so cat can hear what&apos;s being said loud and clear</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('page.title')}</h1>
+          <p className="text-lg text-gray-600">{t('page.subtitle')}</p>
+          <p className="text-sm text-gray-500 mt-3">{t('page.note')}</p>
         </div>
 
         {/* Usage Info */}
         <div className="mb-6 p-4 rounded-lg shadow" style={{ backgroundColor: '#F285CC' }}>
           {loadingUsage ? (
             <div className="text-center text-gray-500">
-              Loading account information...
+              {t('usage.loadingAccount')}
             </div>
           ) : (usageLimits?.is_paid ? (
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <span className="text-green-600 font-semibold">Premium Cat</span>
+                <span className="text-green-600 font-semibold">{t('usage.premiumCat')}</span>
                 {minutes && minutes.email && (
                   <span className="text-sm text-gray-500">({minutes.email})</span>
                 )}
               </div>
               {minutes && (
                 <span className="text-gray-700">
-                  Minutes: <span className="font-semibold">{minutes.minutes.toFixed(1)}</span>
+                  {t('usage.minutes')} <span className="font-semibold">{minutes.minutes.toFixed(1)}</span>
                 </span>
               )}
             </div>
           ) : (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-gray-700">Free Cat</span>
+                <span className="text-gray-700">{t('usage.freeCat')}</span>
                 <button
                   onClick={() => setShowCheckout(true)}
                   className="text-blue-600 hover:underline"
                 >
-                  Buy premium minutes
+                  {t('usage.buyPremiumMinutes')}
                 </button>
               </div>
               {usageLimits && (
                 <div className="text-sm text-gray-600">
-                  <span>Free minutes remaining: {usageLimits.remaining_tiny_base}</span>
-                  <span className="ml-4">Premium minutes remaining: {usageLimits.remaining_small}</span>
+                  <span>{t('usage.freeMinutesRemaining')} {usageLimits.remaining_tiny_base}</span>
+                  <span className="ml-4">{t('usage.premiumMinutesRemaining')} {usageLimits.remaining_small}</span>
                 </div>
               )}
             </div>
@@ -335,7 +344,7 @@ export default function Home() {
                 onClick={() => setShowClaimModal(true)}
                 className="text-sm text-blue-600 hover:underline"
               >
-                Already bought minutes and not showing? click here
+                {t('usage.alreadyBought')}
               </button>
             </div>
           )}
@@ -351,7 +360,7 @@ export default function Home() {
           {selectedFile && (
             <div className="mt-4 p-3 bg-gray-50 rounded">
               <p className="text-sm text-gray-700">
-                Selected: <span className="font-medium">{selectedFile.name}</span>
+                {t('fileUpload.selected')} <span className="font-medium">{selectedFile.name}</span>
                 <span className="ml-2 text-gray-500">
                   ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
                 </span>
@@ -362,7 +371,7 @@ export default function Home() {
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Language
+                {t('form.language')}
               </label>
               <select
                 value={language}
@@ -381,7 +390,7 @@ export default function Home() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Model Quality
+                {t('form.modelQuality')}
               </label>
               <select
                 value={model}
@@ -402,15 +411,15 @@ export default function Home() {
                     style={'comingSoon' in m && m.comingSoon ? { color: '#9ca3af' } : undefined}
                   >
                     {m.label}
-                    {'comingSoon' in m && m.comingSoon ? ' (coming soon™️..)' : !canUseModel(m.value) ? ' (Limit reached)' : ''}
+                    {'comingSoon' in m && m.comingSoon ? ` ${t('models.comingSoon')}` : !canUseModel(m.value) ? ` ${t('models.limitReached')}` : ''}
                   </option>
                 ))}
               </select>
               {!canUseModel(model) && !isModelComingSoon(model) && (
                 <p className="mt-1 text-xs text-red-600">
                   {usageLimits?.is_paid
-                    ? 'Insufficient minutes'
-                    : 'Free tier limit reached for this model'}
+                    ? t('form.insufficientMinutes')
+                    : t('form.freeTierLimitReached')}
                 </p>
               )}
             </div>
@@ -440,7 +449,7 @@ export default function Home() {
               }
             }}
           >
-            {isTranscribing ? 'Transcribing...' : 'Start Transcription'}
+            {isTranscribing ? t('form.transcribing') : t('form.startTranscription')}
           </button>
 
           {jobId && isTranscribing && (
@@ -506,13 +515,13 @@ export default function Home() {
             </a>
           </div>
           <p className="text-sm text-gray-600">
-            © {new Date().getFullYear()} <span className="font-semibold">admitted</span>. All rights reserved.
+            © {new Date().getFullYear()} <span className="font-semibold">admitted</span>. {t('footer.allRightsReserved')}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            Designed by Alexander Mittet
+            {t('footer.designedBy')}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Cat drawing by: <a href="https://www.ericadigitaldesign.etsy.com" target="_blank" rel="noopener noreferrer" className="hover:underline">www.ericadigitaldesign.etsy.com</a>
+            {t('footer.catDrawingBy')} <a href="https://www.ericadigitaldesign.etsy.com" target="_blank" rel="noopener noreferrer" className="hover:underline">www.ericadigitaldesign.etsy.com</a>
           </p>
         </footer>
         </div>

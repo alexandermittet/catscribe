@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, DragEvent } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
@@ -8,6 +9,7 @@ interface FileUploadProps {
 }
 
 export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) {
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -95,13 +97,13 @@ export default function FileUpload({ onFileSelect, disabled }: FileUploadProps) 
         </svg>
         <div>
           <p className="text-lg font-medium text-gray-700">
-            {isDragging ? 'Drop your audio file here' : 'Drag and drop your audio file'}
+            {isDragging ? t('fileUpload.dropHere') : t('fileUpload.dragAndDrop')}
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            or click to browse
+            {t('fileUpload.orClickToBrowse')}
           </p>
           <p className="text-xs text-gray-400 mt-2">
-            Supports: MP3, WAV, M4A, OGG, FLAC, WEBM
+            {t('fileUpload.supports')}
           </p>
         </div>
       </div>
