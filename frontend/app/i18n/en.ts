@@ -207,4 +207,13 @@ export const en: TranslationKey = {
     transcriptionFailed: "Failed to start transcription",
     loadUsageDataFailed: "Failed to load usage data",
   },
+
+  // Privacy
+  privacy: {
+    title: "Did you know?",
+    noPersonalData: "We do NOT save any personal data",
+    emailOnly: "Only your email when you provide it (to track minutes and who paid)",
+    audioDeleted: "Audio files are deleted immediately after transcription",
+    transcriptsDeleted: "Transcripts are deleted when you close the tab or 5 minutes after download",
+  },
 };
