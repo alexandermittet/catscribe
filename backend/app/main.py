@@ -481,6 +481,19 @@ async def get_usage_limits(
     )
 
 
+@app.get("/jobs")
+async def get_jobs(
+    fingerprint: str = Query(...),
+    x_api_key: Optional[str] = Header(None)
+):
+    """Get all jobs for a fingerprint"""
+    if not verify_api_key(x_api_key):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    
+    jobs = redis_client.get_jobs_by_fingerprint(fingerprint)
+    return {"jobs": jobs}
+
+
 @app.post("/cleanup")
 async def cleanup_expired(
     x_api_key: Optional[str] = Header(None)

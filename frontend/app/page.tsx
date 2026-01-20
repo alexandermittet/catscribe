@@ -8,6 +8,7 @@ import ResultDisplay from './components/ResultDisplay';
 import CheckoutModal from './components/CheckoutModal';
 import ClaimCreditsModal from './components/ClaimCreditsModal';
 import ClaimMinutesModal from './components/ClaimMinutesModal';
+import PendingJobsNotification from './components/PendingJobsNotification';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import FontToggle from './components/FontToggle';
 import FirstTimeArrow from './components/FirstTimeArrow';
@@ -18,9 +19,12 @@ import {
   transcribeAudio,
   getMinutes,
   getUsageLimits,
+  getJobs,
+  getTranscription,
   TranscriptionResult,
   UsageLimit,
   MinutesBalance,
+  JobInfo,
 } from './lib/api';
 
 const getLanguages = (t: (key: string) => string) => [
@@ -123,6 +127,8 @@ export default function Home() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [pendingJobs, setPendingJobs] = useState<JobInfo[]>([]);
+  const [dismissedJobs, setDismissedJobs] = useState<string[]>([]);
 
   const LANGUAGES = getLanguages(t);
   const MODELS = getModels(t);
@@ -146,6 +152,26 @@ export default function Home() {
     }
   }, []);
 
+  const loadPendingJobs = useCallback(async (fp: string) => {
+    try {
+      const response = await getJobs(fp);
+      const jobs = response.jobs || [];
+      
+      // Filter out dismissed jobs and current job
+      const dismissed = JSON.parse(localStorage.getItem('dismissedJobs') || '[]');
+      const filteredJobs = jobs.filter((job: JobInfo) => 
+        !dismissed.includes(job.job_id) && 
+        job.job_id !== jobId &&
+        (job.status === 'processing' || job.status === 'queued' || job.status === 'completed')
+      );
+      
+      setPendingJobs(filteredJobs);
+      setDismissedJobs(dismissed);
+    } catch (err) {
+      console.error('Failed to load pending jobs:', err);
+    }
+  }, [jobId]);
+
   useEffect(() => {
     // Initialize fingerprint
     getFingerprint().then(fp => {
@@ -154,6 +180,9 @@ export default function Home() {
       
       // Load usage limits and minutes
       loadUsageData(fp);
+      
+      // Load pending jobs
+      loadPendingJobs(fp);
     });
 
     // Handle Stripe checkout success
@@ -170,7 +199,7 @@ export default function Home() {
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [loadUsageData]);
+  }, [loadUsageData, loadPendingJobs]);
 
   useEffect(() => {
     if (model === 'large') setModel('base');
@@ -226,6 +255,34 @@ export default function Home() {
     setError(errorMessage);
   }, []);
 
+  const handleJobSelect = useCallback(async (selectedJobId: string) => {
+    // Load the selected job
+    setJobId(selectedJobId);
+    setIsTranscribing(true);
+    setError(null);
+    setResult(null);
+    
+    // Remove from pending jobs
+    setPendingJobs(prev => prev.filter(job => job.job_id !== selectedJobId));
+  }, []);
+
+  const handleDismissJob = useCallback((jobIdToDismiss: string) => {
+    if (jobIdToDismiss === 'all') {
+      // Dismiss all pending jobs
+      const allJobIds = pendingJobs.map(job => job.job_id);
+      const newDismissed = [...dismissedJobs, ...allJobIds];
+      setDismissedJobs(newDismissed);
+      localStorage.setItem('dismissedJobs', JSON.stringify(newDismissed));
+      setPendingJobs([]);
+    } else {
+      // Dismiss single job
+      const newDismissed = [...dismissedJobs, jobIdToDismiss];
+      setDismissedJobs(newDismissed);
+      localStorage.setItem('dismissedJobs', JSON.stringify(newDismissed));
+      setPendingJobs(prev => prev.filter(job => job.job_id !== jobIdToDismiss));
+    }
+  }, [dismissedJobs, pendingJobs]);
+
   const isModelComingSoon = (modelValue: string) => modelValue === 'large' || modelValue === 'medium';
   const canUseModel = (modelValue: string): boolean => {
     if (isModelComingSoon(modelValue)) return false; // disabled for now (coming soon)
@@ -248,6 +305,15 @@ export default function Home() {
       <LanguageSwitcher />
       <FontToggle />
       <FirstTimeArrow />
+      {/* Pending Jobs Notification */}
+      {pendingJobs.length > 0 && (
+        <PendingJobsNotification
+          jobs={pendingJobs}
+          fingerprint={fingerprint}
+          onJobSelect={handleJobSelect}
+          onDismiss={handleDismissJob}
+        />
+      )}
       {/* Mouse-Cursor-following spotlight - behind content but above background */}
       <div
         className="fixed inset-0 pointer-events-none"
