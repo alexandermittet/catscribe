@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import Image from 'next/image';
 import { getTranscription, TranscriptionResult } from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -20,6 +21,14 @@ function formatTime(seconds: number): string {
   return `${minutes}m ${secs}s`;
 }
 
+const CAT_GIFS = [
+  '/cats/cat-typing-on-keyboard---i\'m-cooking.gif',
+  '/cats/cat typing.gif',
+  '/cats/cat typing aaaa.gif',
+  '/cats/3d spsinning cat cute.webp',
+  '/cats/catt typing 2.gif',
+];
+
 export default function TranscriptionStatus({
   jobId,
   fingerprint,
@@ -32,9 +41,16 @@ export default function TranscriptionStatus({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [estimatedTotalTime, setEstimatedTotalTime] = useState<number | undefined>();
   const [timeRemaining, setTimeRemaining] = useState<number | undefined>();
+  const [selectedCat, setSelectedCat] = useState<string>('');
 
   const onCompleteRef = useRef(onComplete);
   const onErrorRef = useRef(onError);
+
+  // Randomly select a cat GIF on mount
+  useEffect(() => {
+    const randomCat = CAT_GIFS[Math.floor(Math.random() * CAT_GIFS.length)];
+    setSelectedCat(randomCat);
+  }, []);
 
   // Keep refs up to date
   useEffect(() => {
@@ -183,33 +199,50 @@ export default function TranscriptionStatus({
 
         {/* Progress bar and info - only show when processing */}
         {(status === 'processing' || status === 'queued') && (
-          <>
-            {/* Progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              ></div>
-            </div>
-
-            {/* Progress percentage */}
-            <div className="text-sm text-gray-700">
-              {progressPercent}% {t('status.complete')}
-            </div>
-
-            {/* Time information */}
-            <div className="text-sm text-gray-600 space-y-1">
-              <div>
-                {t('status.elapsedTime')}: {formatTime(elapsedTime)}
-                {estimatedTotalTime && ` / ${formatTime(estimatedTotalTime)}`}
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            {/* Progress info */}
+            <div className="flex-1 space-y-3">
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
               </div>
-              {timeRemaining !== undefined && timeRemaining > 0 && (
+
+              {/* Progress percentage */}
+              <div className="text-sm text-gray-700">
+                {progressPercent}% {t('status.complete')}
+              </div>
+
+              {/* Time information */}
+              <div className="text-sm text-gray-600 space-y-1">
                 <div>
-                  {t('status.timeRemaining')}: ~{formatTime(timeRemaining)}
+                  {t('status.elapsedTime')}: {formatTime(elapsedTime)}
+                  {estimatedTotalTime && ` / ${formatTime(estimatedTotalTime)}`}
                 </div>
-              )}
+                {timeRemaining !== undefined && timeRemaining > 0 && (
+                  <div>
+                    {t('status.timeRemaining')}: ~{formatTime(timeRemaining)}
+                  </div>
+                )}
+              </div>
             </div>
-          </>
+
+            {/* Random cat GIF */}
+            {selectedCat && (
+              <div className="flex-shrink-0">
+                <Image
+                  src={selectedCat}
+                  alt="Cat typing"
+                  width={150}
+                  height={150}
+                  className="rounded-lg"
+                  unoptimized
+                />
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
