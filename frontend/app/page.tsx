@@ -202,7 +202,9 @@ export default function Home() {
     setResult(null);
 
     try {
-      const response = await transcribeAudio(selectedFile, fingerprint, language, model);
+      // Determine if user is paid (has minutes balance)
+      const isPaid = (minutes?.minutes || 0) > 0;
+      const response = await transcribeAudio(selectedFile, fingerprint, language, model, isPaid);
       setJobId(response.job_id);
     } catch (err: any) {
       setIsTranscribing(false);

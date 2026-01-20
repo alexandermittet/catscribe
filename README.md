@@ -199,6 +199,9 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 - Stripe webhook signature verification
 - CORS protection
 - Security headers (CSP, X-Frame-Options, etc.)
+- **End-to-end encryption for paid users** (audio uploads & transcription downloads)
+
+For details on the encryption implementation, see [ENCRYPTION.md](ENCRYPTION.md).
 
 ## Credit Pricing
 

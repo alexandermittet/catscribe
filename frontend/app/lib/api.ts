@@ -59,13 +59,33 @@ export async function transcribeAudio(
   file: File,
   fingerprint: string,
   language: string,
-  model: string
+  model: string,
+  isPaid: boolean = false
 ): Promise<TranscriptionResponse> {
   const formData = new FormData();
-  formData.append('file', file);
+  
+  let fileToUpload = file;
+  let encryptionKey: string | undefined;
+  let encryptionIv: string | undefined;
+  
+  // Encrypt file for paid users
+  if (isPaid) {
+    const crypto = await import('./crypto');
+    const encryptionResult = await crypto.encryptFile(file);
+    fileToUpload = new File([encryptionResult.encryptedData], file.name, { type: 'application/octet-stream' });
+    encryptionKey = encryptionResult.key;
+    encryptionIv = encryptionResult.iv;
+  }
+  
+  formData.append('file', fileToUpload);
   formData.append('language', language);
   formData.append('model', model);
   formData.append('fingerprint', fingerprint);
+  
+  if (encryptionKey && encryptionIv) {
+    formData.append('encryption_key', encryptionKey);
+    formData.append('encryption_iv', encryptionIv);
+  }
 
   // Use Next.js API route which proxies to backend with API key
   const response = await fetch('/api/transcribe', {
@@ -146,4 +166,49 @@ export async function claimMinutes(email: string, fingerprint: string): Promise<
 export function getDownloadUrl(jobId: string, format: string, fingerprint: string): string {
   // Use frontend API route which proxies to backend with API key
   return `/api/download/${jobId}/${format}?fingerprint=${encodeURIComponent(fingerprint)}`;
+}
+
+/**
+ * Download and optionally decrypt transcription file
+ * For paid users, the backend returns encrypted data that needs to be decrypted
+ */
+export async function downloadTranscription(
+  jobId: string,
+  format: string,
+  fingerprint: string
+): Promise<Blob> {
+  const url = getDownloadUrl(jobId, format, fingerprint);
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.statusText}`);
+  }
+  
+  const contentType = response.headers.get('content-type');
+  
+  // Check if response is encrypted (paid user)
+  if (contentType?.includes('application/json')) {
+    const data = await response.json();
+    
+    if (data.encrypted_data && data.encryption_key && data.encryption_iv) {
+      // Decrypt the data
+      const crypto = await import('./crypto');
+      
+      // Convert hex string back to bytes
+      const encryptedBytes = new Uint8Array(
+        data.encrypted_data.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16))
+      );
+      
+      const decryptedBlob = await crypto.decryptData({
+        encryptedData: new Blob([encryptedBytes]),
+        key: data.encryption_key,
+        iv: data.encryption_iv,
+      });
+      
+      return decryptedBlob;
+    }
+  }
+  
+  // For free users or if not encrypted, return as-is
+  return await response.blob();
 }
