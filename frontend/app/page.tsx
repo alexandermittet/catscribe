@@ -186,6 +186,10 @@ export default function Home() {
   }, [jobId]);
 
   useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null;
+    let pollCount = 0;
+    const MAX_POLLS = 12; // Poll for 2 minutes max (12 * 10 seconds)
+    
     // Initialize fingerprint
     getFingerprint().then(fp => {
       setFingerprint(fp);
@@ -194,8 +198,23 @@ export default function Home() {
       // Load usage limits and minutes
       loadUsageData(fp);
       
-      // Load pending jobs
+      // Load pending jobs immediately
       loadPendingJobs(fp);
+      
+      // Also poll for pending jobs to catch new jobs that might appear
+      // This helps if the page is opened right after starting a transcription
+      pollInterval = setInterval(() => {
+        pollCount++;
+        console.log(`[PendingJobs] Polling for jobs... (${pollCount}/${MAX_POLLS})`);
+        loadPendingJobs(fp);
+        
+        // Stop polling after MAX_POLLS attempts
+        if (pollCount >= MAX_POLLS && pollInterval) {
+          console.log('[PendingJobs] Stopping polling after max attempts');
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+      }, 10000); // Poll every 10 seconds
     });
 
     // Handle Stripe checkout success
@@ -212,6 +231,13 @@ export default function Home() {
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
     }
+    
+    // Cleanup interval on unmount
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
   }, [loadUsageData, loadPendingJobs]);
 
   useEffect(() => {
