@@ -1,7 +1,7 @@
 'use client';
 
 import { TranscriptionResult } from '../lib/api';
-import { getDownloadUrl } from '../lib/api';
+import { downloadTranscription } from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface ResultDisplayProps {
@@ -11,9 +11,25 @@ interface ResultDisplayProps {
 
 export default function ResultDisplay({ result, fingerprint }: ResultDisplayProps) {
   const { t } = useLanguage();
-  const handleDownload = (format: string) => {
-    const url = getDownloadUrl(result.job_id, format, fingerprint);
-    window.open(url, '_blank');
+  
+  const handleDownload = async (format: string) => {
+    try {
+      // Use the new downloadTranscription function that handles decryption
+      const blob = await downloadTranscription(result.job_id, format, fingerprint);
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transcription.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Download failed. Please try again.');
+    }
   };
 
   return (

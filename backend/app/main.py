@@ -25,7 +25,7 @@ from app.models import (
     UsageLimit
 )
 from app.transcription import transcribe_audio, estimate_transcription_time
-from app.security import validate_upload
+from app.security import validate_upload, verify_api_key
 from app.storage import (
     save_transcription_outputs,
     get_transcription_files,
@@ -34,6 +34,7 @@ from app.storage import (
 )
 from app.redis_client import RedisClient
 from app.config import settings
+from app.crypto import decrypt_file, encrypt_file, generate_encryption_key
 
 
 # Initialize Redis client
@@ -89,6 +90,8 @@ async def transcribe(
     language: str = Form("auto"),
     model: str = Form("base"),
     fingerprint: str = Form(...),
+    encryption_key: Optional[str] = Form(None),
+    encryption_iv: Optional[str] = Form(None),
     x_api_key: Optional[str] = Header(None)
 ):
     """Transcribe audio file"""
@@ -172,13 +175,26 @@ async def transcribe(
         "progress": 0.0,
         "elapsed_time": 0.0,
         "estimated_total_time": estimated_time,
-        "time_remaining": estimated_time
+        "time_remaining": estimated_time,
+        "is_paid": is_paid
     })
     
     # Save file temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(safe_filename)[1]) as tmp:
         content = await file.read()
-        tmp.write(content)
+        
+        # Decrypt file if encrypted (paid users only)
+        if is_paid and encryption_key and encryption_iv:
+            logger.info(f"Decrypting audio file for paid user (job {job_id})")
+            try:
+                decrypted_content = decrypt_file(content, encryption_key, encryption_iv)
+                tmp.write(decrypted_content)
+            except Exception as e:
+                logger.error(f"Decryption failed for job {job_id}: {str(e)}")
+                raise HTTPException(status_code=400, detail=f"File decryption failed: {str(e)}")
+        else:
+            tmp.write(content)
+        
         tmp_path = tmp.name
     
     # Process transcription in background
@@ -240,7 +256,8 @@ async def transcribe(
                 "status": "completed",
                 "language": result["language"],
                 "duration": duration,
-                "model": model_size.value
+                "model": model_size.value,
+                "is_paid": is_paid
             })
             # Verify it was stored correctly
             verification = redis_client.get_job_metadata(job_id)
@@ -370,6 +387,9 @@ async def download_transcription(
     
     file_path = files[format]
     
+    # Check if user is paid and should receive encrypted response
+    is_paid = metadata.get("is_paid", False)
+    
     # Determine media type
     media_types = {
         "txt": "text/plain",
@@ -377,6 +397,37 @@ async def download_transcription(
         "vtt": "text/vtt"
     }
     
+    # If paid user, encrypt the file before sending
+    if is_paid:
+        logger.info(f"Encrypting transcription file for paid user (job {job_id}, format {format})")
+        try:
+            # Read the file content
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+            
+            # Generate encryption key and IV for this download
+            encryption_key, encryption_iv = generate_encryption_key()
+            
+            # Encrypt the content
+            encrypted_content = encrypt_file(file_content, encryption_key, encryption_iv)
+            
+            # Return encrypted content with encryption metadata in headers
+            return JSONResponse(
+                content={
+                    "encrypted_data": encrypted_content.hex(),  # hex encoding for JSON transport
+                    "encryption_key": encryption_key,
+                    "encryption_iv": encryption_iv
+                },
+                headers={
+                    "X-Encrypted": "true",
+                    "Content-Type": "application/json"
+                }
+            )
+        except Exception as e:
+            logger.error(f"Encryption failed for job {job_id}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"File encryption failed: {str(e)}")
+    
+    # For free users, return file as-is
     return FileResponse(
         file_path,
         media_type=media_types.get(format, "application/octet-stream"),
