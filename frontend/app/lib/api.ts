@@ -39,6 +39,24 @@ export interface TranscriptionResult {
   time_remaining?: number; // seconds
 }
 
+export interface JobInfo {
+  job_id: string;
+  fingerprint: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  duration?: number;
+  model?: string;
+  language?: string;
+  progress?: number;
+  elapsed_time?: number;
+  estimated_total_time?: number;
+  time_remaining?: number;
+  error?: string;
+}
+
+export interface JobsResponse {
+  jobs: JobInfo[];
+}
+
 export interface CreditBalance {
   credits: number;
   email?: string;
@@ -147,3 +165,12 @@ export function getDownloadUrl(jobId: string, format: string, fingerprint: strin
   // Use frontend API route which proxies to backend with API key
   return `/api/download/${jobId}/${format}?fingerprint=${encodeURIComponent(fingerprint)}`;
 }
+
+export async function getJobs(fingerprint: string): Promise<JobsResponse> {
+  const response = await fetch(`/api/jobs?fingerprint=${encodeURIComponent(fingerprint)}`);
+  if (!response.ok) {
+    throw new Error('Failed to get jobs');
+  }
+  return response.json();
+}
+

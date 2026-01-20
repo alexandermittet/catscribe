@@ -207,4 +207,13 @@ export const en: TranslationKey = {
     transcriptionFailed: "Failed to start transcription",
     loadUsageDataFailed: "Failed to load usage data",
   },
+
+  // Pending jobs notification
+  pendingJobs: {
+    title: "Pending Transcriptions",
+    description: "You have ongoing or completed transcriptions from a previous session:",
+    percentComplete: "complete",
+    readyToDownload: "Ready to download",
+    remaining: "remaining",
+  },
 };

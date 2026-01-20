@@ -314,6 +314,38 @@ class RedisClient:
                     json.dumps(metadata)
                 )
     
+    def get_jobs_by_fingerprint(self, fingerprint: str) -> list[Dict[str, Any]]:
+        """Get all jobs for a fingerprint"""
+        if not self.client:
+            print(f"Warning: Redis client not available, returning empty jobs list for {fingerprint}")
+            return []
+        
+        jobs = []
+        cursor = 0
+        total_keys_scanned = 0
+        
+        # Scan all job keys
+        while True:
+            cursor, keys = self.client.scan(cursor, match="job:*", count=100)
+            total_keys_scanned += len(keys)
+            for key in keys:
+                data = self.client.get(key)
+                if data:
+                    job_metadata = json.loads(data)
+                    # Filter by fingerprint
+                    if job_metadata.get("fingerprint") == fingerprint:
+                        # Extract job_id safely by removing the 'job:' prefix
+                        prefix = "job:"
+                        job_id = key.removeprefix(prefix)
+                        job_metadata["job_id"] = job_id
+                        jobs.append(job_metadata)
+                        print(f"Found job {job_id} for fingerprint {fingerprint}: status={job_metadata.get('status')}")
+            if cursor == 0:
+                break
+        
+        print(f"Scanned {total_keys_scanned} keys, found {len(jobs)} jobs for fingerprint {fingerprint}")
+        return jobs
+    
     def set_rate_limit(self, key: str, limit: int, window: int):
         """Set rate limit counter"""
         if not self.client:

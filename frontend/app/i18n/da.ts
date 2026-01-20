@@ -205,6 +205,15 @@ export const da = {
     transcriptionFailed: "Kunne ikke starte transskription",
     loadUsageDataFailed: "Kunne ikke indlæse brugsdata",
   },
+
+  // Pending jobs notification
+  pendingJobs: {
+    title: "Afventende Transskriptioner",
+    description: "Du har igangværende eller færdige transskriptioner fra en tidligere session:",
+    percentComplete: "færdig",
+    readyToDownload: "Klar til download",
+    remaining: "tilbage",
+  },
 };
 
 export type TranslationKey = typeof da;
