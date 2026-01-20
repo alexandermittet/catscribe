@@ -81,7 +81,7 @@ export async function encryptFile(file: File): Promise<EncryptionResult> {
   return {
     encryptedData: new Blob([encryptedData], { type: 'application/octet-stream' }),
     key: keyString,
-    iv: arrayBufferToBase64(iv),
+    iv: arrayBufferToBase64(iv.buffer),
   };
 }
 
