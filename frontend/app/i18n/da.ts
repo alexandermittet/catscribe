@@ -158,7 +158,7 @@ export const da = {
   checkout: {
     title: "Køb minutter",
     emailLabel: "E-mailadresse",
-    packageLabel: "Minutterpakke",
+    packageLabel: "Minutpakker",
     continueToPayment: "Fortsæt til betaling",
     minutesPackage: "Minutter",
     errorInvalidEmail: "Indtast venligst en gyldig e-mailadresse",
