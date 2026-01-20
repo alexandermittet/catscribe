@@ -341,7 +341,7 @@ export default function Home() {
               )}
             </div>
           ))}
-          {!loadingUsage && minutes && minutes.minutes === 0 && !minutes.email && (
+          {!loadingUsage && minutes && minutes.minutes === 0 && (
             <div className="mt-2 pt-2 border-t border-gray-200">
               <button
                 onClick={() => setShowClaimModal(true)}
@@ -486,11 +486,14 @@ export default function Home() {
           <ClaimMinutesModal
             fingerprint={fingerprint}
             onClose={() => setShowClaimModal(false)}
-            onSuccess={() => {
+            onSuccess={(data) => {
               setShowClaimModal(false);
-              if (fingerprint) {
-                loadUsageData(fingerprint);
-              }
+              if (data) {
+                setMinutes(data);
+                if (data.minutes > 0) {
+                  setUsageLimits({ remaining_tiny_base: 999, remaining_small: 999, is_paid: true});
+                } else if (fingerprint) loadUsageData(fingerprint);
+              } else if (fingerprint) loadUsageData(fingerprint);
             }}
           />
         )}

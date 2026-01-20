@@ -108,7 +108,7 @@ export async function getTranscription(
 }
 
 export async function getMinutes(fingerprint: string): Promise<MinutesBalance> {
-  const response = await fetch(`/api/minutes?fingerprint=${encodeURIComponent(fingerprint)}`);
+  const response = await fetch(`/api/minutes?fingerprint=${encodeURIComponent(fingerprint)}`, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error('Failed to get minutes');
   }
@@ -116,7 +116,7 @@ export async function getMinutes(fingerprint: string): Promise<MinutesBalance> {
 }
 
 export async function getUsageLimits(fingerprint: string): Promise<UsageLimit> {
-  const response = await fetch(`/api/usage?fingerprint=${encodeURIComponent(fingerprint)}`);
+  const response = await fetch(`/api/usage?fingerprint=${encodeURIComponent(fingerprint)}`, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error('Failed to get usage limits');
   }

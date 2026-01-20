@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 interface ClaimMinutesModalProps {
   fingerprint: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (data?: { minutes: number, email?: string }) => void;
 }
 
 export default function ClaimMinutesModal({ fingerprint, onClose, onSuccess }: ClaimMinutesModalProps) {
@@ -46,7 +46,7 @@ export default function ClaimMinutesModal({ fingerprint, onClose, onSuccess }: C
 
       setSuccess(true);
       setTimeout(() => {
-        onSuccess();
+        onSuccess(data);
         onClose();
       }, 1500);
     } catch (err: any) {

@@ -27,7 +27,7 @@ build/
 .env.vercel.*
 
 # Secrets backup (if you create this file, keep it local!)
-STRIPE_KEYS.md
+local_secret_stuff.md
 *.keys.txt
 secrets.txt
 
