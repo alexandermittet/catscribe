@@ -1,4 +1,4 @@
-# Transkriber - Audio Transcription Service
+# Catscribe - Audio Transcription Service
 
 A web application for transcribing audio files using OpenAI Whisper, with a free tier and pay-per-use credits.
 
@@ -115,11 +115,11 @@ ALLOWED_ORIGINS=https://your-app.vercel.app
 #### Frontend (.env.local)
 
 ```
-BACKEND_URL=https://transkriber-app-backend.fly.dev
+BACKEND_URL=https://catscribe-backend.fly.dev
 API_KEY=your-secret-api-key
 FRONTEND_URL=https://frontend-taupe-six-42.vercel.app
 NEXT_PUBLIC_FRONTEND_URL=https://frontend-taupe-six-42.vercel.app
-NEXT_PUBLIC_API_URL=https://transkriber-app-backend.fly.dev
+NEXT_PUBLIC_API_URL=https://catscribe-backend.fly.dev
 STRIPE_SECRET_KEY=sk_test_... (or sk_live_...)
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
@@ -131,7 +131,7 @@ See `frontend/.env.local.example` for a template.
 ### Current Deployment Status
 
 - **Frontend**: ✅ Deployed at <https://frontend-taupe-six-42.vercel.app>
-- **Backend**: ✅ Deployed at <https://transkriber-app-backend.fly.dev>
+- **Backend**: ✅ Deployed at <https://catscribe-backend.fly.dev>
 - **Region**: Stockholm (ARN)
 - **Redis**: Upstash Redis (solitary-wind-5060)
 
@@ -141,9 +141,9 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 1. Install Fly CLI: `curl -L https://fly.io/install.sh | sh`
 2. Login: `fly auth login`
-3. Create app: `fly apps create transkriber-app-backend`
-4. Create volume: `fly volumes create transkriber_data --size 10 --region arn`
-5. Create Redis: `fly redis create transkriber-redis --region arn`
+3. Create app: `fly apps create catscribe-backend`
+4. Create volume: `fly volumes create catscribe_data --size 10 --region arn`
+5. Create Redis: `fly redis create catscribe-redis --region arn`
 6. Set secrets:
 
    ```bash

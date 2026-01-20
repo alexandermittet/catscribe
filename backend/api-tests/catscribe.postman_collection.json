@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "transkriber-api-tests",
-		"name": "Transkriber API Tests",
-		"description": "API tests for Transkriber transcription service",
+		"_postman_id": "catscribe-api-tests",
+		"name": "Catscribe API Tests",
+		"description": "API tests for Catscribe transcription service",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [

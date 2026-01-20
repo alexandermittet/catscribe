@@ -24,15 +24,15 @@ echo "📦 Deploying backend to Fly.dev..."
 cd backend
 
 # Check if app exists
-if ! fly apps list | grep -q "transkriber-app-backend"; then
+if ! fly apps list | grep -q "catscribe-backend"; then
     echo "Creating Fly app..."
-    fly apps create transkriber-app-backend
+    fly apps create catscribe-backend
 fi
 
 # Check if volume exists
-if ! fly volumes list | grep -q "transkriber_data"; then
+if ! fly volumes list | grep -q "catscribe_data"; then
     echo "Creating persistent volume..."
-    fly volumes create transkriber_data --size 10 --region iad
+    fly volumes create catscribe_data --size 10 --region iad
 fi
 
 echo ""
@@ -51,7 +51,7 @@ fi
 echo "Deploying backend..."
 fly deploy
 
-BACKEND_URL=$(fly status -a transkriber-app-backend | grep "Hostname" | awk '{print $2}' || echo "transkriber-app-backend.fly.dev")
+BACKEND_URL=$(fly status -a catscribe-backend | grep "Hostname" | awk '{print $2}' || echo "catscribe-backend.fly.dev")
 echo ""
 echo "✅ Backend deployed at: https://${BACKEND_URL}"
 echo ""

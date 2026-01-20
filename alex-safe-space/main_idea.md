@@ -144,7 +144,7 @@ flowchart TB
 ## Project Structure
 
 ```
-transkriber-app/
+catscribe/
 ├── frontend/                 # Next.js app
 │   ├── app/
 │   │   ├── page.tsx         # Main upload interface

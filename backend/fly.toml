@@ -1,4 +1,4 @@
-app = "transkriber-app-backend"
+app = "catscribe-backend"
 primary_region = "arn"
 
 [build]
@@ -39,7 +39,7 @@ primary_region = "arn"
     timeout = "2s"
 
 [mounts]
-  source = "transkriber_data"
+  source = "catscribe_data"
   destination = "/data"
 
 [[vm]]

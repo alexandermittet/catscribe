@@ -2,10 +2,10 @@
 
 ## Backend (Fly.dev) ✅ DEPLOYED
 
-- **URL**: <https://transkriber-app-backend.fly.dev>
+- **URL**: <https://catscribe-backend.fly.dev>
 - **Region**: Stockholm (ARN)
 - **Redis**: Connected (solitary-wind-5060)
-- **Volume**: transkriber_data (10GB) in ARN
+- **Volume**: catscribe_data (10GB) in ARN
 
 ### Secrets Set
 
@@ -38,11 +38,11 @@
 
 ### Environment Variables Set
 
-- `BACKEND_URL` = `https://transkriber-app-backend.fly.dev`
+- `BACKEND_URL` = `https://catscribe-backend.fly.dev`
 - `API_KEY` = `c025fe9e77d7ec0cab6906ea37f0bf629ed2ae569f8c03e46c3e228d13990ee2`
 - `FRONTEND_URL` = `https://frontend-taupe-six-42.vercel.app`
 - `NEXT_PUBLIC_FRONTEND_URL` = `https://frontend-taupe-six-42.vercel.app`
-- `NEXT_PUBLIC_API_URL` = `https://transkriber-app-backend.fly.dev`
+- `NEXT_PUBLIC_API_URL` = `https://catscribe-backend.fly.dev`
 - `STRIPE_SECRET_KEY` = (set in Vercel, encrypted)
 - `STRIPE_WEBHOOK_SECRET` = (set in Vercel, encrypted)
 
@@ -57,7 +57,7 @@
 1. **Backend Health Check:**
 
    ```bash
-   curl https://transkriber-app-backend.fly.dev/health
+   curl https://catscribe-backend.fly.dev/health
    ```
 
 2. **Frontend:** Visit your Vercel URL
@@ -68,9 +68,9 @@
 
 ### Backend Issues
 
-- Check logs: `fly logs -a transkriber-app-backend`
-- SSH into machine: `fly ssh console -a transkriber-app-backend`
-- Check secrets: `fly secrets list -a transkriber-app-backend`
+- Check logs: `fly logs -a catscribe-backend`
+- SSH into machine: `fly ssh console -a catscribe-backend`
+- Check secrets: `fly secrets list -a catscribe-backend`
 
 ### Frontend Issues
 

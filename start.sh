@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Transkriber App locally..."
+echo "🚀 Starting Catscribe locally..."
 echo ""
 
 # Check if Docker is running

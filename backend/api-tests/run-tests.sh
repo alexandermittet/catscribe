@@ -6,7 +6,7 @@
 set -e
 
 ENVIRONMENT=${1:-dev}
-COLLECTION="transkriber.postman_collection.json"
+COLLECTION="catscribe.postman_collection.json"
 ENV_FILE="environment.${ENVIRONMENT}.json"
 
 # Check if Newman is installed
