@@ -210,6 +210,9 @@ export const da = {
   pendingJobs: {
     title: "Afventende Transskriptioner",
     description: "Du har igangværende eller færdige transskriptioner fra en tidligere session:",
+    percentComplete: "færdig",
+    readyToDownload: "Klar til download",
+    remaining: "tilbage",
   },
 };
 

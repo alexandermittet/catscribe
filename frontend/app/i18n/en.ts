@@ -212,5 +212,8 @@ export const en: TranslationKey = {
   pendingJobs: {
     title: "Pending Transcriptions",
     description: "You have ongoing or completed transcriptions from a previous session:",
+    percentComplete: "complete",
+    readyToDownload: "Ready to download",
+    remaining: "remaining",
   },
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { JobInfo, getTranscription } from '../lib/api';
+import { JobInfo } from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface PendingJobsNotificationProps {
@@ -117,9 +117,9 @@ export default function PendingJobsNotification({
                         />
                       </div>
                       <div className="text-xs mt-1">
-                        {Math.round(job.progress * 100)}% complete
+                        {Math.round(job.progress * 100)}% {t('pendingJobs.percentComplete')}
                         {job.time_remaining !== undefined && job.time_remaining > 0 && (
-                          <span className="ml-2">~{formatTime(job.time_remaining)} remaining</span>
+                          <span className="ml-2">~{formatTime(job.time_remaining)} {t('pendingJobs.remaining')}</span>
                         )}
                       </div>
                     </div>
@@ -127,7 +127,7 @@ export default function PendingJobsNotification({
 
                   {job.status === 'completed' && (
                     <div className="text-sm mt-1 font-medium">
-                      ✓ Ready to download
+                      ✓ {t('pendingJobs.readyToDownload')}
                     </div>
                   )}
 
