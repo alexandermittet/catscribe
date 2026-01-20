@@ -153,8 +153,10 @@ export default function Home() {
 
   const loadPendingJobs = useCallback(async (fp: string) => {
     try {
+      console.log('[PendingJobs] Loading pending jobs for fingerprint:', fp);
       const response = await getJobs(fp);
       const jobs = response.jobs || [];
+      console.log('[PendingJobs] Received jobs:', jobs.length, jobs);
       
       // Filter out dismissed jobs and current job
       let dismissed: string[] = [];
@@ -164,13 +166,18 @@ export default function Home() {
         console.error('Failed to parse dismissedJobs from localStorage:', e);
         localStorage.removeItem('dismissedJobs'); // Clear invalid data
       }
+      console.log('[PendingJobs] Dismissed jobs:', dismissed);
+      console.log('[PendingJobs] Current jobId:', jobId);
       
-      const filteredJobs = jobs.filter((job: JobInfo) => 
-        !dismissed.includes(job.job_id) && 
-        job.job_id !== jobId &&
-        (job.status === 'processing' || job.status === 'queued' || job.status === 'completed')
-      );
+      const filteredJobs = jobs.filter((job: JobInfo) => {
+        const notDismissed = !dismissed.includes(job.job_id);
+        const notCurrentJob = job.job_id !== jobId;
+        const validStatus = job.status === 'processing' || job.status === 'queued' || job.status === 'completed';
+        console.log(`[PendingJobs] Job ${job.job_id}: notDismissed=${notDismissed}, notCurrentJob=${notCurrentJob}, validStatus=${validStatus}, status=${job.status}`);
+        return notDismissed && notCurrentJob && validStatus;
+      });
       
+      console.log('[PendingJobs] Filtered jobs to display:', filteredJobs.length, filteredJobs);
       setPendingJobs(filteredJobs);
       setDismissedJobs(dismissed);
     } catch (err) {

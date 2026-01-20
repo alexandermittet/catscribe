@@ -490,7 +490,11 @@ async def get_jobs(
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     
+    logger.info(f"GET /jobs: fingerprint={fingerprint}")
     jobs = redis_client.get_jobs_by_fingerprint(fingerprint)
+    logger.info(f"GET /jobs: Found {len(jobs)} jobs for fingerprint {fingerprint}")
+    for job in jobs:
+        logger.info(f"  - Job {job.get('job_id')}: status={job.get('status')}")
     return {"jobs": jobs}
 
 

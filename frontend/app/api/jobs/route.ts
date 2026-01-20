@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
   try {
     const fingerprint = request.nextUrl.searchParams.get('fingerprint');
     
+    console.log('[Jobs API] Request for fingerprint:', fingerprint);
+    
     if (!fingerprint) {
       return NextResponse.json(
         { detail: 'Fingerprint required' },
@@ -17,6 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     const url = `${BACKEND_URL}/jobs?fingerprint=${fingerprint}`;
+    console.log('[Jobs API] Fetching from backend:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -26,6 +29,7 @@ export async function GET(request: NextRequest) {
     });
 
     const data = await response.json();
+    console.log('[Jobs API] Response from backend:', response.status, data);
 
     if (!response.ok) {
       return NextResponse.json(
