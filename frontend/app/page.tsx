@@ -309,18 +309,28 @@ export default function Home() {
               {t('usage.loadingAccount')}
             </div>
           ) : (usageLimits?.is_paid ? (
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <span className="text-green-600 font-semibold">{t('usage.premiumCat')}</span>
-                {minutes && minutes.email && (
-                  <span className="text-sm text-gray-500">({minutes.email})</span>
-                )}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <span className="text-green-600 font-semibold">{t('usage.premiumCat')}</span>
+                  {minutes && minutes.email && (
+                    <span className="text-sm text-gray-500">({minutes.email})</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  {minutes && (
+                    <span className="text-gray-700">
+                      {t('usage.minutes')} <span className="font-semibold">{minutes.minutes.toFixed(1)}</span>
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setShowCheckout(true)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {t('usage.buyPremiumMinutes')}
+                  </button>
+                </div>
               </div>
-              {minutes && (
-                <span className="text-gray-700">
-                  {t('usage.minutes')} <span className="font-semibold">{minutes.minutes.toFixed(1)}</span>
-                </span>
-              )}
             </div>
           ) : (
             <div className="space-y-2">
