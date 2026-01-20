@@ -157,7 +157,14 @@ export default function Home() {
       const jobs = response.jobs || [];
       
       // Filter out dismissed jobs and current job
-      const dismissed = JSON.parse(localStorage.getItem('dismissedJobs') || '[]');
+      let dismissed: string[] = [];
+      try {
+        dismissed = JSON.parse(localStorage.getItem('dismissedJobs') || '[]');
+      } catch (e) {
+        console.error('Failed to parse dismissedJobs from localStorage:', e);
+        localStorage.removeItem('dismissedJobs'); // Clear invalid data
+      }
+      
       const filteredJobs = jobs.filter((job: JobInfo) => 
         !dismissed.includes(job.job_id) && 
         job.job_id !== jobId &&
