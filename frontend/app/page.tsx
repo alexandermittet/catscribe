@@ -187,8 +187,6 @@ export default function Home() {
 
   useEffect(() => {
     let pollInterval: NodeJS.Timeout | null = null;
-    let pollCount = 0;
-    const MAX_POLLS = 12; // Poll for 2 minutes max (12 * 10 seconds)
     
     // Initialize fingerprint
     getFingerprint().then(fp => {
@@ -203,16 +201,21 @@ export default function Home() {
       
       // Also poll for pending jobs to catch new jobs that might appear
       // This helps if the page is opened right after starting a transcription
+      let pollCount = 0;
+      const MAX_POLLS = 12; // Poll for 2 minutes max (12 * 10 seconds)
+      
       pollInterval = setInterval(() => {
         pollCount++;
         console.log(`[PendingJobs] Polling for jobs... (${pollCount}/${MAX_POLLS})`);
         loadPendingJobs(fp);
         
         // Stop polling after MAX_POLLS attempts
-        if (pollCount >= MAX_POLLS && pollInterval) {
+        if (pollCount >= MAX_POLLS) {
           console.log('[PendingJobs] Stopping polling after max attempts');
-          clearInterval(pollInterval);
-          pollInterval = null;
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
         }
       }, 10000); // Poll every 10 seconds
     });
