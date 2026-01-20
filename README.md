@@ -21,6 +21,8 @@ The app stores none of your data:</p>
 </td>
 </tr>
 </table>
+
+
 ## Architecture
 
 - **Frontend**: Next.js 14 on Vercel
