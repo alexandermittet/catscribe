@@ -287,7 +287,8 @@ class RedisClient:
                     # Filter by fingerprint
                     if job_metadata.get("fingerprint") == fingerprint:
                         # Extract job_id safely by removing the 'job:' prefix
-                        job_id = key[4:] if key.startswith("job:") else key
+                        prefix = "job:"
+                        job_id = key[len(prefix):] if key.startswith(prefix) else key
                         job_metadata["job_id"] = job_id
                         jobs.append(job_metadata)
             if cursor == 0:

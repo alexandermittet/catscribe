@@ -20,7 +20,6 @@ import {
   getMinutes,
   getUsageLimits,
   getJobs,
-  getTranscription,
   TranscriptionResult,
   UsageLimit,
   MinutesBalance,
