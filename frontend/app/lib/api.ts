@@ -147,3 +147,8 @@ export function getDownloadUrl(jobId: string, format: string, fingerprint: strin
   // Use frontend API route which proxies to backend with API key
   return `/api/download/${jobId}/${format}?fingerprint=${encodeURIComponent(fingerprint)}`;
 }
+
+/** URL for release (delete transcripts on tab close). Use with navigator.sendBeacon. */
+export function getReleaseTranscriptionUrl(jobId: string, fingerprint: string): string {
+  return `/api/transcription/${jobId}/release?fingerprint=${encodeURIComponent(fingerprint)}`;
+}

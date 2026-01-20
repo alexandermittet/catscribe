@@ -1,7 +1,8 @@
 import redis
 import os
 import json
-from typing import Optional, Dict, Any
+import time
+from typing import Optional, Dict, Any, List, Tuple
 
 from app.config import settings
 
@@ -314,6 +315,41 @@ class RedisClient:
                     json.dumps(metadata)
                 )
     
+    def set_job_first_downloaded_at(self, job_id: str, timestamp: float) -> None:
+        """Set first_downloaded_at on job metadata if not already set. Preserves TTL."""
+        if not self.client:
+            return
+        meta = self.get_job_metadata(job_id)
+        if not meta or meta.get("first_downloaded_at") is not None:
+            return
+        meta["first_downloaded_at"] = timestamp
+        ttl = self.client.ttl(f"job:{job_id}") or 604800
+        self.client.setex(f"job:{job_id}", ttl, json.dumps(meta))
+
+    def get_jobs_with_first_download_elapsed(self, elapsed_seconds: float = 300) -> List[Tuple[str, str]]:
+        """Jobs where first_downloaded_at is set and >= elapsed_seconds ago. Returns [(job_id, fingerprint), ...]."""
+        if not self.client:
+            return []
+        out: List[Tuple[str, str]] = []
+        now = time.time()
+        for key in self.client.scan_iter("job:*"):
+            data = self.client.get(key)
+            if not data:
+                continue
+            try:
+                meta = json.loads(data)
+            except Exception:
+                continue
+            fd = meta.get("first_downloaded_at")
+            if fd is None:
+                continue
+            if (now - fd) >= elapsed_seconds:
+                job_id = key.replace("job:", "")
+                fp = meta.get("fingerprint")
+                if fp:
+                    out.append((job_id, fp))
+        return out
+
     def set_rate_limit(self, key: str, limit: int, window: int):
         """Set rate limit counter"""
         if not self.client:

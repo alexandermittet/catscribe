@@ -15,32 +15,35 @@ export default function ResultDisplay({ result, fingerprint }: ResultDisplayProp
     const url = getDownloadUrl(result.job_id, format, fingerprint);
     window.open(url, '_blank');
   };
+  const hasDownloadUrls = result.download_urls && Object.keys(result.download_urls).length > 0;
 
   return (
     <div className="mt-6 space-y-4">
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">{t('results.title')}</h2>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleDownload('txt')}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              {t('results.downloadTxt')}
-            </button>
-            <button
-              onClick={() => handleDownload('srt')}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              {t('results.downloadSrt')}
-            </button>
-            <button
-              onClick={() => handleDownload('vtt')}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            >
-              {t('results.downloadVtt')}
-            </button>
-          </div>
+          {hasDownloadUrls && (
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleDownload('txt')}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                {t('results.downloadTxt')}
+              </button>
+              <button
+                onClick={() => handleDownload('srt')}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                {t('results.downloadSrt')}
+              </button>
+              <button
+                onClick={() => handleDownload('vtt')}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              >
+                {t('results.downloadVtt')}
+              </button>
+            </div>
+          )}
         </div>
         <div className="mb-4 text-sm text-gray-600">
           <span>{t('results.language')} {result.language.toUpperCase()}</span>

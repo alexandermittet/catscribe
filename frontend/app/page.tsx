@@ -18,6 +18,7 @@ import {
   transcribeAudio,
   getMinutes,
   getUsageLimits,
+  getReleaseTranscriptionUrl,
   TranscriptionResult,
   UsageLimit,
   MinutesBalance,
@@ -184,6 +185,18 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  // Delete transcript files when user closes the tab (completed result only)
+  useEffect(() => {
+    if (result?.status !== 'completed' || !jobId || !fingerprint) return;
+    const handlePageHide = (e: PageTransitionEvent) => {
+      if (!e.persisted) {
+        navigator.sendBeacon(getReleaseTranscriptionUrl(jobId!, fingerprint));
+      }
+    };
+    window.addEventListener('pagehide', handlePageHide);
+    return () => window.removeEventListener('pagehide', handlePageHide);
+  }, [result?.status, jobId, fingerprint]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);

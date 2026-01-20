@@ -1,10 +1,12 @@
 import os
 import tempfile
 import logging
+import time
+from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Header, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.requests import Request
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -30,7 +32,8 @@ from app.storage import (
     save_transcription_outputs,
     get_transcription_files,
     generate_job_id,
-    cleanup_expired_transcriptions
+    cleanup_expired_transcriptions,
+    delete_transcription
 )
 from app.redis_client import RedisClient
 from app.config import settings
@@ -233,14 +236,15 @@ async def transcribe(
                 duration_minutes = duration / 60.0
                 redis_client.deduct_minutes(fingerprint, duration_minutes)
             
-            # Store job metadata
+            # Store job metadata (include text so we can serve after files are deleted)
             logger.info(f"Marking job {job_id} as completed")
             redis_client.store_job_metadata(job_id, {
                 "fingerprint": fingerprint,
                 "status": "completed",
                 "language": result["language"],
                 "duration": duration,
-                "model": model_size.value
+                "model": model_size.value,
+                "text": result["text"]
             })
             # Verify it was stored correctly
             verification = redis_client.get_job_metadata(job_id)
@@ -310,21 +314,21 @@ async def get_transcription(
     
     # If completed, return full result
     if status == "completed":
-        # Get files
         files = get_transcription_files(fingerprint, job_id)
-        if not files:
-            raise HTTPException(status_code=404, detail="Transcription files not found")
-        
-        # Read text file
-        with open(files["txt"], "r", encoding="utf-8") as f:
-            text = f.read()
-        
-        # Build download URLs (relative paths for now)
-        download_urls = {
-            "txt": f"/download/{job_id}/txt",
-            "srt": f"/download/{job_id}/srt",
-            "vtt": f"/download/{job_id}/vtt"
-        }
+        if files:
+            with open(files["txt"], "r", encoding="utf-8") as f:
+                text = f.read()
+            download_urls = {
+                "txt": f"/download/{job_id}/txt",
+                "srt": f"/download/{job_id}/srt",
+                "vtt": f"/download/{job_id}/vtt"
+            }
+        else:
+            # Files already deleted (after download or release); serve text from Redis
+            text = metadata.get("text") or ""
+            if not text:
+                raise HTTPException(status_code=404, detail="Transcription files not found")
+            download_urls = {}
         
         return TranscriptionResult(
             job_id=job_id,
@@ -337,6 +341,26 @@ async def get_transcription(
     
     # If failed
     raise HTTPException(status_code=500, detail=metadata.get("error", "Transcription failed"))
+
+
+@app.post("/transcription/{job_id}/release")
+async def release_transcription(
+    job_id: str,
+    fingerprint: str = Query(...),
+    x_api_key: Optional[str] = Header(None)
+):
+    """Delete transcript files when user closes the tab. Idempotent."""
+    if not verify_api_key(x_api_key):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    
+    metadata = redis_client.get_job_metadata(job_id)
+    if not metadata:
+        raise HTTPException(status_code=404, detail="Transcription not found")
+    if metadata.get("fingerprint") != fingerprint:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    delete_transcription(fingerprint, job_id)
+    return {"status": "released"}
 
 
 @app.get("/download/{job_id}/{format}")
@@ -364,23 +388,33 @@ async def download_transcription(
     if not files:
         raise HTTPException(status_code=404, detail="Transcription files not found")
     
-    # Get file path
     if format not in files:
         raise HTTPException(status_code=400, detail=f"Invalid format: {format}")
     
     file_path = files[format]
-    
-    # Determine media type
     media_types = {
         "txt": "text/plain",
         "srt": "text/srt",
         "vtt": "text/vtt"
     }
     
-    return FileResponse(
-        file_path,
+    try:
+        content = Path(file_path).read_bytes()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Transcription files not found")
+    
+    # First download: set first_downloaded_at and keep other formats for 5 minutes.
+    # After 5 min since first download: delete folder on this or later downloads.
+    first_downloaded_at = metadata.get("first_downloaded_at")
+    if first_downloaded_at is None:
+        redis_client.set_job_first_downloaded_at(job_id, time.time())
+    elif (time.time() - first_downloaded_at) >= 300:
+        delete_transcription(fingerprint, job_id)
+    
+    return Response(
+        content=content,
         media_type=media_types.get(format, "application/octet-stream"),
-        filename=f"transcription.{format}"
+        headers={"Content-Disposition": f"attachment; filename=\"transcription.{format}\""}
     )
 
 
@@ -506,6 +540,15 @@ async def get_usage_limits(
     )
 
 
+def cleanup_after_first_download() -> int:
+    """Delete transcript folders where first_downloaded_at was >= 5 minutes ago."""
+    deleted = 0
+    for job_id, fp in redis_client.get_jobs_with_first_download_elapsed(elapsed_seconds=300):
+        delete_transcription(fp, job_id)
+        deleted += 1
+    return deleted
+
+
 @app.post("/cleanup")
 async def cleanup_expired(
     x_api_key: Optional[str] = Header(None)
@@ -514,8 +557,10 @@ async def cleanup_expired(
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     
-    deleted = cleanup_expired_transcriptions()
-    return {"deleted": deleted, "message": f"Cleaned up {deleted} expired transcriptions"}
+    deleted_expired = cleanup_expired_transcriptions()
+    deleted_after_first = cleanup_after_first_download()
+    deleted = deleted_expired + deleted_after_first
+    return {"deleted": deleted, "message": f"Cleaned up {deleted} transcriptions"}
 
 
 if __name__ == "__main__":
