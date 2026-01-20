@@ -3,6 +3,7 @@ Lightweight end-to-end encryption utilities for paid users
 Handles decryption of uploaded audio files and encryption of transcription outputs
 """
 
+import os
 import base64
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
@@ -77,7 +78,6 @@ def generate_encryption_key() -> Tuple[str, str]:
     Returns:
         Tuple of (key_b64, iv_b64) as base64-encoded strings
     """
-    import os
     key = os.urandom(32)  # 256 bits
     iv = os.urandom(12)   # 96 bits for GCM
     

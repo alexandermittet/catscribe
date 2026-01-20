@@ -25,7 +25,7 @@ from app.models import (
     UsageLimit
 )
 from app.transcription import transcribe_audio, estimate_transcription_time
-from app.security import validate_upload, verify_api_key
+from app.security import validate_upload
 from app.storage import (
     save_transcription_outputs,
     get_transcription_files,
