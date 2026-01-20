@@ -6,7 +6,7 @@ A web application for transcribing audio files using OpenAI Whisper, with a free
 
 - **Frontend**: Next.js 14 on Vercel
 - **Backend**: FastAPI (Python) on Fly.dev
-- **Transcription**: OpenAI Whisper (local models)
+- **Transcription**: faster-whisper (local models for privacy)
 - **Database**: Upstash Redis
 - **Payments**: Stripe Checkout
 
