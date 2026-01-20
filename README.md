@@ -1,10 +1,28 @@
-# Catscribe - Audio Transcription Service
+<table style="margin-bottom: 0">
+<tr>
+<td valign="top">
 
-A open source web app for transcribing interview using faster-whisper, with a functioning stripe payment system, focused on privacy.
-The app stores none of your data:
-- Immediately deletes your audio after transcriptions
-- Deletes your transcripts after you've downloaded them or closed the tab in your browser
+<h1>Catscribe - Audio Transcription Service</h1>
 
+<p>A open source web app for transcribing interview using faster-whisper, with a functioning stripe payment system, focused on privacy.
+The app stores none of your data:</p>
+<ul>
+<li>Immediately deletes your audio after transcriptions</li>
+<li>Deletes your transcripts after you've downloaded them or closed the tab in your browser</li>
+</ul>
+
+</td>
+<td valign="top" align="right">
+
+<div style="display: flex; gap: 8px;"><img src="frontend/public/nerd-cat.svg" width="120" alt="Nerd cat" /><img src="frontend/public/tape-recorder.svg" width="120" alt="Tape recorder" /></div>
+
+<img src="frontend/public/cats/3d%20spsinning%20cat%20cute.webp" width="180" alt="3d spinning cat" />
+
+<img src="frontend/public/cats/cat%20typing%20aaaa.gif" width="180" alt="Cat typing" />
+
+</td>
+</tr>
+</table>
 ## Architecture
 
 - **Frontend**: Next.js 14 on Vercel
