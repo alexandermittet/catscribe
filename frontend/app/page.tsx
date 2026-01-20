@@ -353,6 +353,17 @@ export default function Home() {
           )}
         </div>
 
+        {/* Privacy Notice */}
+        <div className="mb-6 p-4 rounded-lg shadow bg-blue-50 border border-blue-200">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">🔒 {t('privacy.title')}</h3>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>✓ {t('privacy.noPersonalData')}</li>
+            <li>✓ {t('privacy.emailOnly')}</li>
+            <li>✓ {t('privacy.audioDeleted')}</li>
+            <li>✓ {t('privacy.transcriptsDeleted')}</li>
+          </ul>
+        </div>
+
         {/* Main Form */}
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: '#F285CC' }}>
           <FileUpload

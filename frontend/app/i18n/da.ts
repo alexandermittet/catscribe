@@ -205,6 +205,15 @@ export const da = {
     transcriptionFailed: "Kunne ikke starte transskription",
     loadUsageDataFailed: "Kunne ikke indlæse brugsdata",
   },
+
+  // Privacy
+  privacy: {
+    title: "Vidste du?",
+    noPersonalData: "Vi gemmer IKKE nogen personlige data",
+    emailOnly: "Kun din email når du giver den (for at holde styr på minutter og hvem der har betalt)",
+    audioDeleted: "Lydfiler slettes med det samme efter transskription",
+    transcriptsDeleted: "Transskriptioner slettes når du lukker fanen",
+  },
 };
 
 export type TranslationKey = typeof da;
