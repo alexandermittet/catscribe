@@ -1,6 +1,9 @@
 # Catscribe - Audio Transcription Service
 
-A web application for transcribing audio files using OpenAI Whisper, with a free tier and pay-per-use credits.
+A open source web app for transcribing interview using faster-whisper, with a functioning stripe payment system, focused on privacy.
+The app stores none of your data:
+- Immediately deletes your audio after transcriptions
+- Deletes your transcripts after you've downloaded them or closed the tab in your browser
 
 ## Architecture
 
