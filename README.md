@@ -14,7 +14,7 @@ The app stores none of your data:</p>
 </td>
 <td valign="top" align="right">
 
-<div style="display: flex; gap: 8px;"><img src="frontend/public/tape-recorder.svg" width="120" alt="Tape recorder" /><img src="frontend/public/nerd-cat.svg" width="120" alt="Nerd cat" /></div>
+<div style="display: flex; gap: 8px;"><img src="frontend/public/nerd-cat.svg" width="120" alt="Nerd cat" /></div>
 
 <img src="frontend/public/cats/cat%20typing%20aaaa.gif" width="180" alt="Cat typing" />
 
