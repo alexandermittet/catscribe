@@ -25,13 +25,10 @@ export async function GET(
       headers: {
         'X-API-Key': API_KEY,
       },
+      cache: 'no-store',
     });
 
     const data = await response.json();
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:backend_response',message:'Received from backend',data:{jobId,status:data.status,statusType:typeof data.status,hasText:!!data.text,textLength:data.text?.length,backendStatus:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
 
     if (!response.ok) {
       return NextResponse.json(
@@ -39,10 +36,6 @@ export async function GET(
         { status: response.status }
       );
     }
-
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/8e0ea2fb-19cc-4a4e-a996-68356312ba25',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:returning_to_frontend',message:'Returning to frontend',data:{jobId,status:data.status,statusType:typeof data.status,hasText:!!data.text},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
 
     return NextResponse.json(data);
   } catch (error: any) {

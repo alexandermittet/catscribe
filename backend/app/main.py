@@ -242,6 +242,9 @@ async def transcribe(
                 "duration": duration,
                 "model": model_size.value
             })
+            # Verify it was stored correctly
+            verification = redis_client.get_job_metadata(job_id)
+            logger.info(f"Verified job {job_id} metadata after storing: status={verification.get('status') if verification else None}")
             
         except Exception as e:
             logger.error(f"Transcription failed for job {job_id}: {str(e)}", exc_info=True)
@@ -279,6 +282,7 @@ async def get_transcription(
     
     # Get job metadata
     metadata = redis_client.get_job_metadata(job_id)
+    logger.info(f"GET /transcription/{job_id}: Retrieved metadata from Redis: status={metadata.get('status') if metadata else None}, metadata_keys={list(metadata.keys()) if metadata else None}")
     if not metadata:
         raise HTTPException(status_code=404, detail="Transcription not found")
     
@@ -287,6 +291,7 @@ async def get_transcription(
         raise HTTPException(status_code=403, detail="Access denied")
     
     status = metadata.get("status", "queued")
+    logger.info(f"GET /transcription/{job_id}: Determined status={status}, will return branch: {status}")
     
     # If still processing or queued, return progress data
     if status in ["queued", "processing"]:

@@ -244,7 +244,10 @@ class RedisClient:
         
         metadata = self.get_job_metadata(job_id)
         if metadata:
-            metadata["status"] = "processing"
+            # Don't overwrite status if it's already completed or failed
+            current_status = metadata.get("status")
+            if current_status not in ["completed", "failed"]:
+                metadata["status"] = "processing"
             metadata["progress"] = progress
             metadata["elapsed_time"] = elapsed_time
             metadata["estimated_total_time"] = estimated_total_time
