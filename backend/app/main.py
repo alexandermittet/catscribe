@@ -420,13 +420,30 @@ async def add_minutes(
     return {"success": True, "minutes": new_minutes}
 
 
+@app.post("/minutes/add-by-email")
+async def add_minutes_by_email(
+    email: str = Form(...),
+    minutes: float = Form(...),
+    x_api_key: Optional[str] = Header(None)
+):
+    """Add minutes to a pending bucket for an email. Admin-only (X-API-Key). Recipient claims via app: Already bought? click here → enter email."""
+    if not verify_api_key(x_api_key):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Invalid email address")
+    if minutes <= 0:
+        raise HTTPException(status_code=400, detail="Minutes must be positive")
+    total = redis_client.add_minutes_by_email(email.strip(), minutes)
+    return {"success": True, "minutes": total}
+
+
 @app.post("/minutes/claim", response_model=MinutesBalance)
 async def claim_minutes(
     fingerprint: str = Form(...),
     email: str = Form(...),
     x_api_key: Optional[str] = Header(None)
 ):
-    """Claim minutes by email address"""
+    """Claim minutes by email address (Stripe purchase or admin-add-by-email)"""
     if not verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     
@@ -434,17 +451,25 @@ async def claim_minutes(
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Invalid email address")
     
-    # Find existing usage by email
-    existing = redis_client.find_usage_by_email(email.lower())
+    email_lower = email.lower().strip()
+
+    # First: if admin added minutes by email (pending bucket), merge into this fingerprint
+    merged = redis_client.merge_pending_into_fingerprint(fingerprint, email_lower)
+    if merged:
+        return MinutesBalance(
+            minutes=merged.get("minutes", 0.0),
+            email=merged.get("email")
+        )
     
+    # Else: find existing usage by email (e.g. from Stripe) and link
+    existing = redis_client.find_usage_by_email(email_lower)
     if not existing:
         raise HTTPException(
             status_code=404,
             detail="No minutes found for this email address"
         )
     
-    # Link fingerprint to email and merge minutes
-    usage = redis_client.link_fingerprint_to_email(fingerprint, email.lower())
+    usage = redis_client.link_fingerprint_to_email(fingerprint, email_lower)
     
     return MinutesBalance(
         minutes=usage.get("minutes", 0.0),

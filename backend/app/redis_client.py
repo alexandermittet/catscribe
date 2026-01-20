@@ -199,6 +199,51 @@ class RedisClient:
             86400 * 365,
             json.dumps(usage)
         )
+
+    def add_minutes_by_email(self, email: str, minutes: float) -> float:
+        """Add minutes to a pending bucket for an email (admin gift). Recipient claims via /minutes/claim."""
+        if not self.client:
+            return minutes
+        key = f"usage:pending:{email.lower()}"
+        data = self.client.get(key)
+        if data:
+            obj = json.loads(data)
+        else:
+            obj = {"minutes": 0.0, "email": email.lower()}
+        obj["minutes"] = obj.get("minutes", 0.0) + minutes
+        obj["email"] = email.lower()
+        self.client.setex(key, 86400 * 365, json.dumps(obj))
+        return obj["minutes"]
+
+    def get_pending_minutes(self, email: str) -> Optional[Dict[str, Any]]:
+        """Get pending minutes for an email, or None."""
+        if not self.client:
+            return None
+        data = self.client.get(f"usage:pending:{email.lower()}")
+        if not data:
+            return None
+        return json.loads(data)
+
+    def merge_pending_into_fingerprint(self, fingerprint: str, email: str) -> Optional[Dict[str, Any]]:
+        """If pending minutes exist for email, merge into usage:{fingerprint}, delete pending, set email_to_fingerprint. Returns merged usage or None."""
+        if not self.client:
+            return None
+        pending = self.get_pending_minutes(email.lower())
+        if not pending:
+            return None
+        current = self.get_usage(fingerprint)
+        merged_minutes = pending.get("minutes", 0.0) + current.get("minutes", 0.0)
+        merged = {
+            "minutes": merged_minutes,
+            "email": email.lower(),
+            "is_paid": True,
+            "tiny_base_minutes_used": current.get("tiny_base_minutes_used", 0.0),
+            "premium_minutes_used": current.get("premium_minutes_used", 0.0),
+        }
+        self.client.setex(f"usage:{fingerprint}", 86400 * 365, json.dumps(merged))
+        self.client.setex(f"email_to_fingerprint:{email.lower()}", 86400 * 365, fingerprint)
+        self.client.delete(f"usage:pending:{email.lower()}")
+        return merged
     
     def deduct_minutes(self, fingerprint: str, amount: float) -> bool:
         """Deduct minutes, returns True if successful"""
