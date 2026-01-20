@@ -212,7 +212,7 @@ export const da = {
     noPersonalData: "Vi gemmer IKKE nogen personlige data",
     emailOnly: "Kun din email når du giver den (for at holde styr på minutter og hvem der har betalt)",
     audioDeleted: "Lydfiler slettes med det samme efter transskription",
-    transcriptsDeleted: "Transskriptioner slettes når du lukker fanen",
+    transcriptsDeleted: "Transskriptioner slettes når du lukker fanen eller 5 minutter efter download",
   },
 };
 
