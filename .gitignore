@@ -31,6 +31,10 @@ local_secret_stuff.md
 *.keys.txt
 secrets.txt
 
+# Deployment and setup docs (keep local only)
+DEPLOYMENT.md
+LOCAL_SETUP.md
+
 # IDE
 .vscode/
 .idea/
