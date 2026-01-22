@@ -93,7 +93,7 @@ export const da = {
   models: {
     tiny: "😴 Doven kat (~12 min ventetid for 1 time interview, lavere kvalitet)",
     base: "🐱 Hverdags kat (~15 min ventetid for 1 time interview, Balanceret)",
-    small: "📚 Studerende kat (~20 min ventetid for 1 time interview, Bedre kvalitet)",
+    small: "📚 Flittig kat (~20 min ventetid for 1 time interview, Bedre kvalitet)",
     medium: "🎯 Perfektionistisk kat (~40 min ventetid for 1 time interview, Høj kvalitet)",
     large: "💪 Hyperpolyglot gigachad kat (~2 timer ventetid for 1 time interview, Bedste kvalitet)",
     comingSoon: "(kommer snart™️..)",
