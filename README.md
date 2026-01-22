@@ -4,6 +4,8 @@
 
 <h1>Catscribe - Audio Transcription Service</h1>
 
+<p><strong>Try the app right now:</strong> <a href="https://catscribe.admitted.dk">catscribe.admitted.dk</a> | <span style="color: blue;"><a href="https://catscribe.vercel.app" style="color: blue;">catscribe.vercel.app</a></span> (mirror)</p>
+
 <p>A open source web app for transcribing interview using faster-whisper, with a functioning stripe payment system, focused on privacy.
 The app stores none of your data:</p>
 <ul>
@@ -21,7 +23,6 @@ The app stores none of your data:</p>
 </td>
 </tr>
 </table>
-
 
 ## Architecture
 
